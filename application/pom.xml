@@ -326,6 +326,7 @@
             <groupId>org.thingsboard</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
         </dependency>
+<!-- LOCAL-DEV-ONLY (do not commit)
         <dependency>
             <groupId>com.sun.winsw</groupId>
             <artifactId>winsw</artifactId>
@@ -333,6 +334,8 @@
             <type>exe</type>
             <scope>provided</scope>
         </dependency>
+-->
+
         <dependency>
             <groupId>org.thingsboard</groupId>
             <artifactId>tools</artifactId>
