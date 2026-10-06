@@ -74,6 +74,7 @@ import org.thingsboard.server.service.security.auth.oauth2.PrevUriValidator;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.token.JwtTokenFactory;
 import org.thingsboard.server.service.security.system.SystemSecurityService;
+import org.thingsboard.server.service.sqs.SqsConnectionTestService;
 import org.thingsboard.server.service.sync.vc.EntitiesVersionControlService;
 import org.thingsboard.server.service.sync.vc.autocommit.TbAutoCommitSettingsService;
 import org.thingsboard.server.service.system.SystemInfoService;
@@ -111,10 +112,12 @@ public class AdminController extends BaseController {
     private final AuditLogService auditLogService;
     private final SecretConfigurationService secretConfigurationService;
     private final TbTransactionalCache<String, TenantId> oauth2StateCache;
+    private final SqsConnectionTestService sqsConnectionTestService;
 
     private static final String DEFAULT_PREV_URI = "/settings/outgoing-mail";
     private static final String STATE_COOKIE_NAME = "state";
     private static final String MAIL_SETTINGS_KEY = "mail";
+    private static final String SQS_SETTINGS_KEY = "sqs";
 
     protected static final String RESOURCE_READ_CHECK = "\n\nSecurity check is performed to verify that " +
             "the user has 'READ' permission for the 'ADMIN_SETTINGS' (for 'SYS_ADMIN' authority) or 'WHITE_LABELING' (for 'TENANT_ADMIN' authority) resource.";
@@ -145,6 +148,8 @@ public class AdminController extends BaseController {
         }
         if (adminSettings.getKey().equals(MAIL_SETTINGS_KEY)) {
             ((ObjectNode) adminSettings.getJsonValue()).remove("refreshToken");
+        } else if (adminSettings.getKey().equals(SQS_SETTINGS_KEY)) {
+            ((ObjectNode) adminSettings.getJsonValue()).remove("secretAccessKey");
         }
         return adminSettings;
     }
@@ -169,6 +174,8 @@ public class AdminController extends BaseController {
         adminSettings = checkNotNull(adminSettingsService.saveAdminSettings(tenantId, adminSettings));
         if (adminSettings.getKey().equals(MAIL_SETTINGS_KEY)) {
             ((ObjectNode) adminSettings.getJsonValue()).remove("refreshToken");
+        } else if (adminSettings.getKey().equals(SQS_SETTINGS_KEY)) {
+            ((ObjectNode) adminSettings.getJsonValue()).remove("secretAccessKey");
         }
         return adminSettings;
     }
@@ -283,6 +290,44 @@ public class AdminController extends BaseController {
         } catch (ThingsboardException e) {
             auditLogService.logEntityAction(user.getTenantId(), user.getCustomerId(), user.getId(), user.getName(), user.getId(), user, ActionType.SMS_SENT, e, testSmsRequest.getNumberTo());
             throw e;
+        }
+    }
+
+    @ApiOperation(value = "Test SQS connection (testSqs)",
+            notes = "Tests connection to Amazon SQS using the provided SQS settings. " + SYSTEM_AUTHORITY_PARAGRAPH + RESOURCE_READ_CHECK)
+    @PreAuthorize("hasAuthority('SYS_ADMIN')")
+    @PostMapping(value = "/settings/testSqs")
+    public void testSqs(
+            @Parameter(description = "A JSON value representing the SQS Settings.")
+            @RequestBody AdminSettings adminSettings) throws ThingsboardException {
+        SecurityUser user = getCurrentUser();
+        accessControlService.checkPermission(user, Resource.ADMIN_SETTINGS, Operation.READ);
+        adminSettings = checkNotNull(adminSettings);
+
+        if (adminSettings.getKey().equals(SQS_SETTINGS_KEY)) {
+            AdminSettings sqsSettings;
+            sqsSettings = checkNotNull(adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, SQS_SETTINGS_KEY));
+
+            // Merge in the stored secret if it's not provided in the test request
+            if (!adminSettings.getJsonValue().has("secretAccessKey")) {
+                JsonNode storedSecret = sqsSettings.getJsonValue().get("secretAccessKey");
+                if (storedSecret != null) {
+                    ((ObjectNode) adminSettings.getJsonValue()).put("secretAccessKey", storedSecret.asText());
+                }
+            }
+
+            try {
+                com.thingsboard.server.common.data.sqs.SqsSettings settings = JacksonUtil.treeToValue(
+                        adminSettings.getJsonValue(),
+                        com.thingsboard.server.common.data.sqs.SqsSettings.class);
+                sqsConnectionTestService.testConnection(settings);
+            } catch (ThingsboardException e) {
+                throw e;
+            } catch (Exception e) {
+                log.error("Error parsing SQS settings: {}", e.getMessage());
+                throw new ThingsboardException("Invalid SQS settings format: " + e.getMessage(),
+                        ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+            }
         }
     }
 

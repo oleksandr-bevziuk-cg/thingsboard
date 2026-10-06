@@ -85,6 +85,30 @@ export interface DeviceConnectivityInfo {
 
 export type DeviceConnectivitySettings = Record<DeviceConnectivityProtocol, DeviceConnectivityInfo>;
 
+export enum SqsQueueType {
+  STANDARD = 'STANDARD',
+  FIFO = 'FIFO'
+}
+
+export interface SqsSettings {
+  enabled: boolean;
+  region: string;
+  accessKeyId: string;
+  secretAccessKey?: string;
+  queueUrl: string;
+  queueName?: string;
+  queueType: SqsQueueType | string;
+  messageGroupId?: string;
+  contentBasedDeduplication?: boolean;
+  endpointOverride?: string;
+  visibilityTimeoutSeconds?: number;
+  pollingWaitTimeSeconds?: number;
+  maxNumberOfMessages?: number;
+  connectionTimeoutMs?: number;
+  requestTimeoutMs?: number;
+  maxRetries?: number;
+}
+
 export enum MailTemplate {
   test = 'test',
   activation = 'activation',

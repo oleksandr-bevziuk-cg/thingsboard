@@ -130,3 +130,178 @@
     </section>
   </mat-card-content>
 </mat-card>
+<mat-card appearance="outlined" class="settings-card">
+  <mat-card-header>
+    <mat-card-title>
+      <div class="flex flex-row">
+        <span class="mat-headline-5" translate>admin.sqs.amazon-sqs</span>
+      </div>
+    </mat-card-title>
+  </mat-card-header>
+  @if (isLoading$ | async) {
+    <mat-progress-bar color="warn" mode="indeterminate">
+    </mat-progress-bar>
+  } @else {
+    <div style="height: 4px;"></div>
+  }
+  <mat-card-content>
+    <form [formGroup]="sqsSettingsForm" (ngSubmit)="saveSqsSettings()" class="tb-form-panel no-border no-padding">
+      <fieldset [disabled]="isLoading$ | async">
+        <div class="tb-form-panel stroked no-padding-bottom">
+          <mat-slide-toggle class="mat-slide" formControlName="enabled">
+            {{ 'admin.sqs.enabled' | translate }}
+          </mat-slide-toggle>
+        </div>
+        <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+          <mat-form-field class="flex-1" appearance="outline">
+            <mat-label translate>admin.sqs.region</mat-label>
+            <input matInput formControlName="region" required/>
+            @if (sqsSettingsForm.get('region').hasError('required')) {
+              <mat-error>{{ 'admin.sqs.region-required' | translate }}</mat-error>
+            }
+          </mat-form-field>
+        </div>
+        <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+          <mat-form-field class="flex-1" appearance="outline">
+            <mat-label translate>admin.sqs.access-key-id</mat-label>
+            <input matInput formControlName="accessKeyId" required/>
+            @if (sqsSettingsForm.get('accessKeyId').hasError('required')) {
+              <mat-error>{{ 'admin.sqs.access-key-id-required' | translate }}</mat-error>
+            }
+          </mat-form-field>
+        </div>
+        <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+          <mat-form-field class="flex-1" appearance="outline">
+            <mat-label translate>admin.sqs.secret-access-key</mat-label>
+            <input matInput type="password" formControlName="secretAccessKey" required/>
+            @if (sqsSettingsForm.get('secretAccessKey').hasError('required')) {
+              <mat-error>{{ 'admin.sqs.secret-access-key-required' | translate }}</mat-error>
+            }
+          </mat-form-field>
+        </div>
+        <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+          <mat-form-field class="flex-1" appearance="outline">
+            <mat-label translate>admin.sqs.queue-url</mat-label>
+            <input matInput formControlName="queueUrl" required/>
+            @if (sqsSettingsForm.get('queueUrl').hasError('required')) {
+              <mat-error>{{ 'admin.sqs.queue-url-required' | translate }}</mat-error>
+            }
+          </mat-form-field>
+        </div>
+        <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+          <mat-form-field class="flex-1" appearance="outline">
+            <mat-label translate>admin.sqs.queue-name</mat-label>
+            <input matInput formControlName="queueName"/>
+          </mat-form-field>
+        </div>
+        <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+          <mat-form-field class="flex-1" appearance="outline">
+            <mat-label translate>admin.sqs.queue-type</mat-label>
+            <mat-select formControlName="queueType" required>
+              <mat-option *ngFor="let type of sqsQueueTypes" [value]="type">
+                {{ type }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+        @if (sqsSettingsForm.get('queueType').value === 'FIFO') {
+          <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+            <mat-form-field class="flex-1" appearance="outline">
+              <mat-label translate>admin.sqs.message-group-id</mat-label>
+              <input matInput formControlName="messageGroupId" required/>
+              @if (sqsSettingsForm.get('messageGroupId').hasError('required')) {
+                <mat-error>{{ 'admin.sqs.message-group-id-required' | translate }}</mat-error>
+              }
+            </mat-form-field>
+          </div>
+          <div class="tb-form-row" tb-hint-tooltip-icon="{{ 'admin.sqs.content-dedup-hint' | translate }}">
+            <mat-slide-toggle class="mat-slide margin" formControlName="contentBasedDeduplication">
+              {{ 'admin.sqs.content-dedup' | translate }}
+            </mat-slide-toggle>
+          </div>
+        }
+        <mat-expansion-panel appearance="fill" class="tb-form-panel stroked">
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              {{ 'admin.sqs.advanced-settings' | translate }}
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+          <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+            <mat-form-field class="flex-1" appearance="outline">
+              <mat-label translate>admin.sqs.endpoint-override</mat-label>
+              <input matInput formControlName="endpointOverride"/>
+            </mat-form-field>
+          </div>
+          <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+            <mat-form-field class="flex-1" appearance="outline">
+              <mat-label translate>admin.sqs.visibility-timeout</mat-label>
+              <input matInput type="number" min="0" max="43200" formControlName="visibilityTimeoutSeconds"/>
+              @if (sqsSettingsForm.get('visibilityTimeoutSeconds').hasError('min') ||
+                    sqsSettingsForm.get('visibilityTimeoutSeconds').hasError('max')) {
+                <mat-error>{{ 'admin.sqs.visibility-timeout-range' | translate }}</mat-error>
+              }
+            </mat-form-field>
+          </div>
+          <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+            <mat-form-field class="flex-1" appearance="outline">
+              <mat-label translate>admin.sqs.polling-wait-time</mat-label>
+              <input matInput type="number" min="0" max="20" formControlName="pollingWaitTimeSeconds"/>
+              @if (sqsSettingsForm.get('pollingWaitTimeSeconds').hasError('min') ||
+                    sqsSettingsForm.get('pollingWaitTimeSeconds').hasError('max')) {
+                <mat-error>{{ 'admin.sqs.polling-wait-time-range' | translate }}</mat-error>
+              }
+            </mat-form-field>
+          </div>
+          <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+            <mat-form-field class="flex-1" appearance="outline">
+              <mat-label translate>admin.sqs.max-messages</mat-label>
+              <input matInput type="number" min="1" max="10" formControlName="maxNumberOfMessages"/>
+              @if (sqsSettingsForm.get('maxNumberOfMessages').hasError('min') ||
+                    sqsSettingsForm.get('maxNumberOfMessages').hasError('max')) {
+                <mat-error>{{ 'admin.sqs.max-messages-range' | translate }}</mat-error>
+              }
+            </mat-form-field>
+          </div>
+          <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+            <mat-form-field class="flex-1" appearance="outline">
+              <mat-label translate>admin.sqs.connection-timeout</mat-label>
+              <input matInput type="number" formControlName="connectionTimeoutMs"/>
+            </mat-form-field>
+          </div>
+          <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+            <mat-form-field class="flex-1" appearance="outline">
+              <mat-label translate>admin.sqs.request-timeout</mat-label>
+              <input matInput type="number" formControlName="requestTimeoutMs"/>
+            </mat-form-field>
+          </div>
+          <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+            <mat-form-field class="flex-1" appearance="outline">
+              <mat-label translate>admin.sqs.max-retries</mat-label>
+              <input matInput type="number" formControlName="maxRetries"/>
+            </mat-form-field>
+          </div>
+        </mat-expansion-panel>
+      </fieldset>
+      <div class="flex flex-row flex-wrap items-center justify-end gap-2">
+        <button mat-button color="primary"
+                [disabled]="sqsSettingsForm.pristine"
+                (click)="discardSqsSettings()"
+                type="button">{{'action.undo' | translate}}
+        </button>
+        <button mat-button color="primary"
+                [disabled]="sqsSettingsForm.invalid || testingSqsConnection"
+                (click)="testSqsConnection()"
+                type="button">
+          @if (testingSqsConnection) {
+            <mat-spinner diameter="20" class="margin-right"></mat-spinner>
+          }
+          {{'action.test' | translate}}
+        </button>
+        <button mat-raised-button color="primary"
+                [disabled]="(isLoading$ | async) || sqsSettingsForm.invalid || !sqsSettingsForm.dirty"
+                type="submit">{{'action.save' | translate}}
+        </button>
+      </div>
+    </form>
+  </mat-card-content>
+</mat-card>

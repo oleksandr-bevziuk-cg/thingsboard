@@ -16,6 +16,7 @@ import {
   RepositorySettings,
   RepositorySettingsInfo,
   SecuritySettings,
+  SqsSettings,
   TestSmsRequest,
   UpdateMessage
 } from '@shared/models/settings.models';
@@ -52,6 +53,11 @@ export class AdminService {
   public sendTestSms(testSmsRequest: TestSmsRequest,
                      config?: RequestConfig): Observable<void> {
     return this.http.post<void>('/api/admin/settings/testSms', testSmsRequest, defaultHttpOptionsFromConfig(config));
+  }
+
+  public sendTestSqs(adminSettings: AdminSettings<SqsSettings>,
+                     config?: RequestConfig): Observable<void> {
+    return this.http.post<void>('/api/admin/settings/testSqs', adminSettings, defaultHttpOptionsFromConfig(config));
   }
 
   public getSecuritySettings(config?: RequestConfig): Observable<SecuritySettings> {
