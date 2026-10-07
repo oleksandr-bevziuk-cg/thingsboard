@@ -70,6 +70,9 @@
           <tb-toggle-option value="http">{{ "admin.device-connectivity.http-s" | translate }}</tb-toggle-option>
           <tb-toggle-option value="mqtt">{{ 'admin.device-connectivity.mqtt-s' | translate }}</tb-toggle-option>
           <tb-toggle-option value="coap">{{ 'admin.device-connectivity.coap-s' | translate }}</tb-toggle-option>
+          @if (isSysAdmin) {
+            <tb-toggle-option value="sqs">{{ 'admin.device-connectivity.sqs-s' | translate }}</tb-toggle-option>
+          }
         </tb-toggle-select>
         <div class="tb-form-hint tb-primary-fill">{{ 'admin.device-connectivity.hint' | translate }}</div>
       </div>
@@ -86,6 +89,9 @@
         @if (protocol === 'coap') {
           <ng-container *ngTemplateOutlet="connectivitySettings; context:{protocol: protocol}"></ng-container>
           <ng-container *ngTemplateOutlet="connectivitySettings; context:{protocol: protocol + 's'}"></ng-container>
+        }
+        @if (protocol === 'sqs' && isSysAdmin) {
+          <ng-container *ngTemplateOutlet="sqsConnectivitySettings"></ng-container>
         }
         <ng-template #connectivitySettings let-protocol="protocol">
           <div class="tb-form-panel stroked no-padding-bottom" [formGroupName]="protocol">
@@ -112,6 +118,153 @@
                   </mat-error>
                 }
               </mat-form-field>
+            </div>
+          </div>
+        </ng-template>
+        <ng-template #sqsConnectivitySettings>
+          <div class="tb-form-panel stroked no-padding-bottom" formGroupName="sqs">
+            <mat-slide-toggle class="mat-slide" formControlName="enabled">
+              {{ 'admin.device-connectivity.sqs' | translate }}
+            </mat-slide-toggle>
+            <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+              <mat-form-field class="flex-1" appearance="outline">
+                <mat-label translate>admin.device-connectivity.region</mat-label>
+                <mat-select formControlName="region">
+                  <mat-option value="us-east-1">us-east-1</mat-option>
+                  <mat-option value="us-east-2">us-east-2</mat-option>
+                  <mat-option value="us-west-1">us-west-1</mat-option>
+                  <mat-option value="us-west-2">us-west-2</mat-option>
+                  <mat-option value="eu-west-1">eu-west-1</mat-option>
+                  <mat-option value="eu-central-1">eu-central-1</mat-option>
+                  <mat-option value="ap-southeast-1">ap-southeast-1</mat-option>
+                  <mat-option value="ap-southeast-2">ap-southeast-2</mat-option>
+                  <mat-option value="ap-northeast-1">ap-northeast-1</mat-option>
+                </mat-select>
+                @if (deviceConnectivitySettingsForm.get('sqs.region').hasError('required')) {
+                  <mat-error>{{ 'admin.device-connectivity.region-required' | translate }}</mat-error>
+                }
+              </mat-form-field>
+            </div>
+            <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+              <mat-form-field class="flex-1" appearance="outline">
+                <mat-label translate>admin.device-connectivity.access-key-id</mat-label>
+                <input matInput formControlName="accessKeyId"/>
+                @if (deviceConnectivitySettingsForm.get('sqs.accessKeyId').hasError('required')) {
+                  <mat-error>{{ 'admin.device-connectivity.access-key-id-required' | translate }}</mat-error>
+                }
+              </mat-form-field>
+              <mat-form-field class="flex-1" appearance="outline">
+                <mat-label translate>admin.device-connectivity.secret-access-key</mat-label>
+                <input matInput type="password" formControlName="secretAccessKey"
+                       [placeholder]="secretAccessKeyPlaceholder()"/>
+                <mat-hint>{{ 'admin.device-connectivity.secret-access-key-hint' | translate }}</mat-hint>
+              </mat-form-field>
+            </div>
+            <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+              <mat-form-field class="flex-1" appearance="outline">
+                <mat-label translate>admin.device-connectivity.session-token</mat-label>
+                <input matInput type="password" formControlName="sessionToken"/>
+              </mat-form-field>
+            </div>
+            <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+              <mat-form-field class="flex-1" appearance="outline">
+                <mat-label translate>admin.device-connectivity.queue-name</mat-label>
+                <input matInput formControlName="queueName"/>
+              </mat-form-field>
+              <mat-form-field class="flex-1" appearance="outline">
+                <mat-label translate>admin.device-connectivity.queue-url</mat-label>
+                <input matInput formControlName="queueUrl"/>
+                @if (deviceConnectivitySettingsForm.get('sqs.queueUrl').hasError('pattern')) {
+                  <mat-error>{{ 'admin.device-connectivity.queue-url-pattern' | translate }}</mat-error>
+                }
+              </mat-form-field>
+            </div>
+            @if (deviceConnectivitySettingsForm.get('sqs').hasError('queueIdentifierRequired')) {
+              <div class="tb-form-hint tb-primary-fill">
+                {{ 'admin.device-connectivity.queue-name-or-url-required' | translate }}
+              </div>
+            }
+            <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+              <mat-form-field class="flex-1" appearance="outline">
+                <mat-label translate>admin.device-connectivity.queue-type</mat-label>
+                <mat-select formControlName="queueType">
+                  <mat-option [value]="sqsQueueType.STANDARD">
+                    {{ 'admin.device-connectivity.queue-type-standard' | translate }}
+                  </mat-option>
+                  <mat-option [value]="sqsQueueType.FIFO">
+                    {{ 'admin.device-connectivity.queue-type-fifo' | translate }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+            @if (deviceConnectivitySettingsForm.get('sqs.queueType').value === sqsQueueType.FIFO) {
+              <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+                <mat-form-field class="flex-1" appearance="outline">
+                  <mat-label translate>admin.device-connectivity.message-group-id</mat-label>
+                  <input matInput formControlName="messageGroupId"/>
+                </mat-form-field>
+                <mat-checkbox formControlName="useContentBasedDeduplication">
+                  {{ 'admin.device-connectivity.use-content-based-deduplication' | translate }}
+                </mat-checkbox>
+              </div>
+            }
+            <mat-expansion-panel class="tb-settings-expansion-panel" formGroupName="advanced">
+              <mat-expansion-panel-header>
+                <mat-panel-title>{{ 'admin.device-connectivity.advanced-settings' | translate }}</mat-panel-title>
+              </mat-expansion-panel-header>
+              <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+                <mat-form-field class="flex-1" appearance="outline">
+                  <mat-label translate>admin.device-connectivity.endpoint-override</mat-label>
+                  <input matInput formControlName="endpointOverride"/>
+                </mat-form-field>
+              </div>
+              <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+                <mat-form-field class="flex-1" appearance="outline">
+                  <mat-label translate>admin.device-connectivity.visibility-timeout</mat-label>
+                  <input matInput type="number" formControlName="visibilityTimeout"/>
+                </mat-form-field>
+                <mat-form-field class="flex-1" appearance="outline">
+                  <mat-label translate>admin.device-connectivity.polling-wait-time</mat-label>
+                  <input matInput type="number" formControlName="pollingWaitTimeSeconds"/>
+                </mat-form-field>
+                <mat-form-field class="flex-1" appearance="outline">
+                  <mat-label translate>admin.device-connectivity.max-messages-per-poll</mat-label>
+                  <input matInput type="number" formControlName="maxMessagesPerPoll"/>
+                </mat-form-field>
+              </div>
+              <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+                <mat-form-field class="flex-1" appearance="outline">
+                  <mat-label translate>admin.device-connectivity.connection-timeout</mat-label>
+                  <input matInput type="number" formControlName="connectionTimeout"/>
+                </mat-form-field>
+                <mat-form-field class="flex-1" appearance="outline">
+                  <mat-label translate>admin.device-connectivity.request-timeout</mat-label>
+                  <input matInput type="number" formControlName="requestTimeout"/>
+                </mat-form-field>
+                <mat-form-field class="flex-1" appearance="outline">
+                  <mat-label translate>admin.device-connectivity.max-retries</mat-label>
+                  <input matInput type="number" formControlName="maxRetries"/>
+                </mat-form-field>
+              </div>
+              <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+                <mat-form-field class="flex-1" appearance="outline">
+                  <mat-label translate>admin.device-connectivity.message-retention-period</mat-label>
+                  <input matInput type="number" formControlName="messageRetentionPeriod"/>
+                </mat-form-field>
+              </div>
+            </mat-expansion-panel>
+            <div class="flex flex-row flex-wrap items-center justify-end gap-2">
+              <button mat-stroked-button color="primary"
+                      type="button"
+                      [disabled]="(isTestingSqsConnection$ | async) ||
+                                  deviceConnectivitySettingsForm.get('sqs').invalid ||
+                                  !deviceConnectivitySettingsForm.get('sqs.enabled').value"
+                      (click)="testSqsConnection()">
+                @if (isTestingSqsConnection$ | async) {
+                  <mat-progress-spinner diameter="20" mode="indeterminate"></mat-progress-spinner>
+                }
+                {{ 'admin.device-connectivity.test-connection' | translate }}
+              </button>
             </div>
           </div>
         </ng-template>

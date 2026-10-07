@@ -17,6 +17,7 @@ import {
   RepositorySettingsInfo,
   SecuritySettings,
   TestSmsRequest,
+  TestSqsConnectionRequest,
   UpdateMessage
 } from '@shared/models/settings.models';
 import { EntitiesVersionControlService } from '@core/http/entities-version-control.service';
@@ -52,6 +53,12 @@ export class AdminService {
   public sendTestSms(testSmsRequest: TestSmsRequest,
                      config?: RequestConfig): Observable<void> {
     return this.http.post<void>('/api/admin/settings/testSms', testSmsRequest, defaultHttpOptionsFromConfig(config));
+  }
+
+  // TODO: backend endpoint /api/admin/settings/testSqs is not yet implemented; wired up ahead of backend support.
+  public testSqsConnection(testSqsConnectionRequest: TestSqsConnectionRequest,
+                            config?: RequestConfig): Observable<void> {
+    return this.http.post<void>('/api/admin/settings/testSqs', testSqsConnectionRequest, defaultHttpOptionsFromConfig(config));
   }
 
   public getSecuritySettings(config?: RequestConfig): Observable<SecuritySettings> {

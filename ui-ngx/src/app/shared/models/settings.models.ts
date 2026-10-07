@@ -75,7 +75,7 @@ export interface GeneralSettings {
   baseUrl: string;
 }
 
-export type DeviceConnectivityProtocol = 'http' | 'https' | 'mqtt' | 'mqtts' | 'coap' | 'coaps';
+export type DeviceConnectivityProtocol = 'http' | 'https' | 'mqtt' | 'mqtts' | 'coap' | 'coaps' | 'sqs';
 
 export interface DeviceConnectivityInfo {
   enabled: boolean;
@@ -83,7 +83,53 @@ export interface DeviceConnectivityInfo {
   port: number;
 }
 
-export type DeviceConnectivitySettings = Record<DeviceConnectivityProtocol, DeviceConnectivityInfo>;
+export enum SqsQueueType {
+  STANDARD = 'STANDARD',
+  FIFO = 'FIFO'
+}
+
+export const sqsQueueTypeTranslationMap = new Map<SqsQueueType, string>([
+  [SqsQueueType.STANDARD, 'admin.device-connectivity.queue-type-standard'],
+  [SqsQueueType.FIFO, 'admin.device-connectivity.queue-type-fifo']
+]);
+
+export interface DeviceConnectivitySqsInfo {
+  enabled: boolean;
+  region: string;
+  accessKeyId: string;
+  secretAccessKey?: string;
+  secretAccessKeySet?: boolean;
+  sessionToken?: string;
+  queueName?: string;
+  queueUrl?: string;
+  queueType: SqsQueueType;
+  messageGroupId?: string;
+  useContentBasedDeduplication?: boolean;
+  messageRetentionPeriod?: number;
+  endpointOverride?: string;
+  visibilityTimeout?: number;
+  pollingWaitTimeSeconds?: number;
+  maxMessagesPerPoll?: number;
+  connectionTimeout?: number;
+  requestTimeout?: number;
+  maxRetries?: number;
+}
+
+export type DeviceConnectivitySettings =
+  Record<Exclude<DeviceConnectivityProtocol, 'sqs'>, DeviceConnectivityInfo> & { sqs: DeviceConnectivitySqsInfo };
+
+export interface TestSqsConnectionRequest {
+  region: string;
+  accessKeyId: string;
+  secretAccessKey?: string;
+  sessionToken?: string;
+  queueName?: string;
+  queueUrl?: string;
+  queueType: SqsQueueType;
+  endpointOverride?: string;
+  connectionTimeout?: number;
+  requestTimeout?: number;
+}
 
 export enum MailTemplate {
   test = 'test',
