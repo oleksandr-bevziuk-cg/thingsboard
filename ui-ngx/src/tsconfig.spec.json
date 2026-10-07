@@ -1,0 +1,18 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../out-tsc/spec",
+    "types": ["node", "jquery", "flot", "tooltipster", "tinycolor2", "js-beautify",
+       "raphael", "canvas-gauges", "systemjs"]
+  },
+  "angularCompilerOptions": {
+    "fullTemplateTypeCheck": true,
+    "supportTestBed": true,
+    "supportJitMode": true
+  },
+  "include": [
+    "polyfills.ts",
+    "**/*.spec.ts",
+    "**/*.d.ts"
+  ]
+}

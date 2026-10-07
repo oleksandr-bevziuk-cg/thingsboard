@@ -9,7 +9,8 @@
     "build:types": "node generate-types.js",
     "build:icon-metadata": "node generate-icon-metadata.js",
     "lint": "ng lint",
-    "prepare": "patch-package --error-on-fail"
+    "prepare": "patch-package --error-on-fail",
+    "test": "ng test"
   },
   "private": true,
   "dependencies": {

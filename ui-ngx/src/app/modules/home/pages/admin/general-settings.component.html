@@ -115,6 +115,144 @@
             </div>
           </div>
         </ng-template>
+        <div class="tb-form-panel stroked no-padding-bottom" formGroupName="sqs">
+          <mat-slide-toggle class="mat-slide" formControlName="enabled">
+            {{ 'admin.device-connectivity.sqs.sqs' | translate }}
+          </mat-slide-toggle>
+          <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+            <mat-form-field class="flex-1" appearance="outline">
+              <mat-label translate>admin.device-connectivity.sqs.region</mat-label>
+              <input matInput formControlName="region"/>
+              @if (deviceConnectivitySettingsForm.get('sqs.region').hasError('required')) {
+                <mat-error>{{ 'admin.device-connectivity.sqs.region-required' | translate }}</mat-error>
+              }
+              @if (deviceConnectivitySettingsForm.get('sqs.region').hasError('pattern')) {
+                <mat-error>{{ 'admin.device-connectivity.sqs.region-pattern' | translate }}</mat-error>
+              }
+            </mat-form-field>
+          </div>
+          <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+            <mat-form-field class="flex-1" appearance="outline">
+              <mat-label translate>admin.device-connectivity.sqs.access-key-id</mat-label>
+              <input matInput formControlName="accessKeyId"/>
+              @if (deviceConnectivitySettingsForm.get('sqs.accessKeyId').hasError('required')) {
+                <mat-error>{{ 'admin.device-connectivity.sqs.access-key-id-required' | translate }}</mat-error>
+              }
+            </mat-form-field>
+            <tb-secret-key-input class="flex-1"
+              formControlName="secretAccessKey"
+              label="{{ 'admin.device-connectivity.sqs.secret-access-key' | translate }}"
+              requiredText="{{ 'admin.device-connectivity.sqs.secret-access-key-required' | translate }}"
+              [required]="deviceConnectivitySettingsForm.get('sqs.enabled').value">
+            </tb-secret-key-input>
+          </div>
+          <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+            <mat-form-field class="flex-1" appearance="outline">
+              <mat-label translate>admin.device-connectivity.sqs.session-token</mat-label>
+              <input matInput formControlName="sessionToken"/>
+              <mat-hint>{{ 'admin.device-connectivity.sqs.session-token-hint' | translate }}</mat-hint>
+            </mat-form-field>
+          </div>
+          <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+            <mat-form-field class="flex-1" appearance="outline">
+              <mat-label translate>admin.device-connectivity.sqs.queue-name</mat-label>
+              <input matInput formControlName="queueName"/>
+            </mat-form-field>
+            <mat-form-field class="flex-1" appearance="outline">
+              <mat-label translate>admin.device-connectivity.sqs.queue-url</mat-label>
+              <input matInput formControlName="queueUrl"/>
+            </mat-form-field>
+          </div>
+          @if (deviceConnectivitySettingsForm.get('sqs').hasError('queueIdentifierRequired')) {
+            <div class="tb-form-hint tb-error">{{ 'admin.device-connectivity.sqs.queue-identifier-required' | translate }}</div>
+          }
+          @if (deviceConnectivitySettingsForm.get('sqs').hasError('fifoNameSuffixRequired')) {
+            <div class="tb-form-hint tb-error">{{ 'admin.device-connectivity.sqs.fifo-name-suffix-required' | translate }}</div>
+          }
+          <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+            <mat-form-field class="flex-1" appearance="outline">
+              <mat-label translate>admin.device-connectivity.sqs.queue-type</mat-label>
+              <mat-select formControlName="queueType">
+                <mat-option [value]="sqsQueueType.STANDARD">{{ 'admin.device-connectivity.sqs.queue-type-standard' | translate }}</mat-option>
+                <mat-option [value]="sqsQueueType.FIFO">{{ 'admin.device-connectivity.sqs.queue-type-fifo' | translate }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+          @if (deviceConnectivitySettingsForm.get('sqs.queueType').value === sqsQueueType.FIFO) {
+            <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+              <mat-form-field class="flex-1" appearance="outline">
+                <mat-label translate>admin.device-connectivity.sqs.message-group-id</mat-label>
+                <input matInput formControlName="messageGroupId"/>
+                @if (deviceConnectivitySettingsForm.get('sqs.messageGroupId').hasError('required')) {
+                  <mat-error>{{ 'admin.device-connectivity.sqs.message-group-id-required' | translate }}</mat-error>
+                }
+              </mat-form-field>
+              <mat-checkbox formControlName="useContentBasedDeduplication">
+                {{ 'admin.device-connectivity.sqs.use-content-based-deduplication' | translate }}
+              </mat-checkbox>
+            </div>
+          }
+          <mat-expansion-panel class="mat-elevation-z0" formGroupName="advanced" [expanded]="false">
+            <mat-expansion-panel-header>
+              <mat-panel-title>{{ 'admin.device-connectivity.sqs.advanced-settings' | translate }}</mat-panel-title>
+            </mat-expansion-panel-header>
+            <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+              <mat-form-field class="flex-1" appearance="outline">
+                <mat-label translate>admin.device-connectivity.sqs.endpoint-override</mat-label>
+                <input matInput formControlName="endpointOverride"/>
+                <mat-hint>{{ 'admin.device-connectivity.sqs.endpoint-override-hint' | translate }}</mat-hint>
+              </mat-form-field>
+            </div>
+            <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+              <mat-form-field class="flex-1" appearance="outline">
+                <mat-label translate>admin.device-connectivity.sqs.visibility-timeout-seconds</mat-label>
+                <input matInput type="number" formControlName="visibilityTimeoutSeconds"/>
+              </mat-form-field>
+              <mat-form-field class="flex-1" appearance="outline">
+                <mat-label translate>admin.device-connectivity.sqs.polling-wait-time-seconds</mat-label>
+                <input matInput type="number" formControlName="pollingWaitTimeSeconds"/>
+              </mat-form-field>
+            </div>
+            <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+              <mat-form-field class="flex-1" appearance="outline">
+                <mat-label translate>admin.device-connectivity.sqs.max-messages-per-poll</mat-label>
+                <input matInput type="number" formControlName="maxMessagesPerPoll"/>
+              </mat-form-field>
+              <mat-form-field class="flex-1" appearance="outline">
+                <mat-label translate>admin.device-connectivity.sqs.connection-timeout-seconds</mat-label>
+                <input matInput type="number" formControlName="connectionTimeoutSeconds"/>
+              </mat-form-field>
+            </div>
+            <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+              <mat-form-field class="flex-1" appearance="outline">
+                <mat-label translate>admin.device-connectivity.sqs.request-timeout-seconds</mat-label>
+                <input matInput type="number" formControlName="requestTimeoutSeconds"/>
+              </mat-form-field>
+              <mat-form-field class="flex-1" appearance="outline">
+                <mat-label translate>admin.device-connectivity.sqs.max-retries</mat-label>
+                <input matInput type="number" formControlName="maxRetries"/>
+              </mat-form-field>
+            </div>
+            <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+              <mat-form-field class="flex-1" appearance="outline">
+                <mat-label translate>admin.device-connectivity.sqs.message-retention-period-seconds</mat-label>
+                <input matInput type="number" formControlName="messageRetentionPeriodSeconds"/>
+                <mat-hint>{{ 'admin.device-connectivity.sqs.message-retention-period-seconds-hint' | translate }}</mat-hint>
+              </mat-form-field>
+            </div>
+          </mat-expansion-panel>
+          <div class="flex flex-row flex-wrap items-center gap-2">
+            <button mat-stroked-button color="primary"
+                    type="button"
+                    [disabled]="deviceConnectivitySettingsForm.get('sqs').invalid || testingSqsConnection"
+                    (click)="testSqsConnection()">
+              @if (testingSqsConnection) {
+                <mat-spinner diameter="20" style="display: inline-block; margin-right: 8px;"></mat-spinner>
+              }
+              {{ 'admin.device-connectivity.sqs.test-connection' | translate }}
+            </button>
+          </div>
+        </div>
         <div class="flex flex-row flex-wrap items-center justify-end gap-2">
           <button mat-button color="primary"
                   [disabled]="deviceConnectivitySettingsForm.pristine"

@@ -83,7 +83,56 @@ export interface DeviceConnectivityInfo {
   port: number;
 }
 
-export type DeviceConnectivitySettings = Record<DeviceConnectivityProtocol, DeviceConnectivityInfo>;
+export const sqsRegionPattern: RegExp = /^[a-z]{2}(-gov)?-[a-z]+-\d$/;
+export const sqsFifoNamePattern: RegExp = /\.fifo$/;
+
+export enum SqsQueueType {
+  STANDARD = 'STANDARD',
+  FIFO = 'FIFO'
+}
+
+export const sqsQueueTypeTranslationMap = new Map<SqsQueueType, string>([
+  [SqsQueueType.STANDARD, 'admin.device-connectivity.sqs.queue-type-standard'],
+  [SqsQueueType.FIFO, 'admin.device-connectivity.sqs.queue-type-fifo']
+]);
+
+export interface DeviceConnectivitySqsAdvancedSettings {
+  endpointOverride?: string;
+  visibilityTimeoutSeconds: number;
+  pollingWaitTimeSeconds: number;
+  maxMessagesPerPoll: number;
+  connectionTimeoutSeconds: number;
+  requestTimeoutSeconds: number;
+  maxRetries: number;
+  messageRetentionPeriodSeconds?: number;
+}
+
+export interface DeviceConnectivitySqsSettings {
+  enabled: boolean;
+  region: string;
+  accessKeyId?: string;
+  secretAccessKey?: string;
+  secretAccessKeyConfigured?: boolean;
+  sessionToken?: string;
+  queueName?: string;
+  queueUrl?: string;
+  queueType: SqsQueueType;
+  messageGroupId?: string;
+  useContentBasedDeduplication?: boolean;
+  advanced: DeviceConnectivitySqsAdvancedSettings;
+}
+
+export type DeviceConnectivitySettings =
+  Record<DeviceConnectivityProtocol, DeviceConnectivityInfo> & { sqs?: DeviceConnectivitySqsSettings };
+
+export interface TestSqsConnectionRequest {
+  sqs: DeviceConnectivitySqsSettings;
+}
+
+export interface TestSqsConnectionResult {
+  success: boolean;
+  message?: string;
+}
 
 export enum MailTemplate {
   test = 'test',

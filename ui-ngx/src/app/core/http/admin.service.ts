@@ -17,6 +17,8 @@ import {
   RepositorySettingsInfo,
   SecuritySettings,
   TestSmsRequest,
+  TestSqsConnectionRequest,
+  TestSqsConnectionResult,
   UpdateMessage
 } from '@shared/models/settings.models';
 import { EntitiesVersionControlService } from '@core/http/entities-version-control.service';
@@ -52,6 +54,18 @@ export class AdminService {
   public sendTestSms(testSmsRequest: TestSmsRequest,
                      config?: RequestConfig): Observable<void> {
     return this.http.post<void>('/api/admin/settings/testSms', testSmsRequest, defaultHttpOptionsFromConfig(config));
+  }
+
+  /**
+   * NOTE: The backend endpoint for testing an Amazon SQS connection does not exist yet (as of this UI-only
+   * change). The path below mirrors the naming convention of testMail/testSms (/api/admin/settings/test*)
+   * and should be confirmed with whoever implements the backend ticket. Until the endpoint exists, callers
+   * should expect a 404/501 response during local development.
+   */
+  public testSqsConnection(testSqsConnectionRequest: TestSqsConnectionRequest,
+                           config?: RequestConfig): Observable<TestSqsConnectionResult> {
+    return this.http.post<TestSqsConnectionResult>('/api/admin/settings/testSqsConnection', testSqsConnectionRequest,
+      defaultHttpOptionsFromConfig(config));
   }
 
   public getSecuritySettings(config?: RequestConfig): Observable<SecuritySettings> {

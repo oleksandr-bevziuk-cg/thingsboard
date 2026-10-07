@@ -20,18 +20,22 @@
         "build": {
           "builder": "@angular-builders/custom-esbuild:application",
           "options": {
-            "plugins": ["./esbuild/tb-esbuild-plugins.ts"],
+            "plugins": [
+              "./esbuild/tb-esbuild-plugins.ts"
+            ],
             "loader": {
-                ".raw": "text"
+              ".raw": "text"
             },
             "outputPath": {
-                "base": "target/generated-resources/public",
-                "media": ".",
-                "browser": ""
+              "base": "target/generated-resources/public",
+              "media": ".",
+              "browser": ""
             },
             "index": "src/index.html",
             "browser": "src/main.ts",
-            "polyfills": ["src/polyfills.ts"],
+            "polyfills": [
+              "src/polyfills.ts"
+            ],
             "tsConfig": "src/tsconfig.app.json",
             "aot": true,
             "assets": [
@@ -145,7 +149,12 @@
                 "node_modules"
               ],
               "sass": {
-                "silenceDeprecations": ["mixed-decls", "color-functions", "global-builtin", "import"]
+                "silenceDeprecations": [
+                  "mixed-decls",
+                  "color-functions",
+                  "global-builtin",
+                  "import"
+                ]
               }
             },
             "scripts": [
@@ -216,7 +225,9 @@
           "options": {
             "buildTarget": "thingsboard:build",
             "proxyConfig": "proxy.conf.js",
-            "middlewares": ["./esbuild/tb-html-fallback-middleware.ts"]
+            "middlewares": [
+              "./esbuild/tb-html-fallback-middleware.ts"
+            ]
           },
           "configurations": {
             "production": {
@@ -241,6 +252,16 @@
               "src/**/*.ts",
               "src/**/*.html"
             ]
+          }
+        },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "tsConfig": "src/tsconfig.spec.json",
+            "polyfills": [
+              "src/polyfills.ts"
+            ],
+            "runner": "vitest"
           }
         }
       }

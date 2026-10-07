@@ -19,5 +19,9 @@
         gap: 0;
       }
     }
+
+    .tb-error {
+      color: var(--mat-sys-error, #f44336);
+    }
   }
 }
