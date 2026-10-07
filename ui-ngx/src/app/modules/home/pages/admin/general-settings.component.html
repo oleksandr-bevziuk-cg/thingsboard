@@ -130,3 +130,205 @@
     </section>
   </mat-card-content>
 </mat-card>
+<mat-card appearance="outlined" class="settings-card">
+  <mat-card-header>
+    <mat-card-title>
+      <div class="flex flex-row">
+        <span class="mat-headline-5" translate>admin.sqs.sqs-connectivity</span>
+      </div>
+    </mat-card-title>
+  </mat-card-header>
+  @if (isLoading$ | async) {
+    <mat-progress-bar color="warn" mode="indeterminate">
+    </mat-progress-bar>
+  } @else {
+    <div style="height: 4px;"></div>
+  }
+  <mat-card-content>
+    <form [formGroup]="sqsSettingsForm" (ngSubmit)="saveSqsSettings()"
+          class="tb-form-panel no-border no-padding">
+      <fieldset [disabled]="isLoading$ | async">
+        <div class="tb-form-panel stroked no-padding-bottom">
+          <div class="tb-form-row" tb-hint-tooltip-icon="{{ 'admin.sqs.enable-hint' | translate }}">
+            <mat-slide-toggle class="mat-slide" formControlName="enabled">
+              {{ 'admin.sqs.enable' | translate }}
+            </mat-slide-toggle>
+          </div>
+        </div>
+        <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+          <mat-form-field class="flex-1" appearance="outline">
+            <mat-label translate>admin.sqs.region</mat-label>
+            <input matInput formControlName="region" />
+            @if (sqsSettingsForm.get('region').hasError('required')) {
+              <mat-error>
+                {{ 'admin.sqs.region-required' | translate }}
+              </mat-error>
+            }
+            @if (sqsSettingsForm.get('region').hasError('pattern')) {
+              <mat-error>
+                {{ 'admin.sqs.region-invalid' | translate }}
+              </mat-error>
+            }
+          </mat-form-field>
+        </div>
+        <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+          <mat-form-field class="flex-1" appearance="outline">
+            <mat-label translate>admin.sqs.access-key-id</mat-label>
+            <input matInput formControlName="accessKeyId" />
+            @if (sqsSettingsForm.get('accessKeyId').hasError('required')) {
+              <mat-error>
+                {{ 'admin.sqs.access-key-id-required' | translate }}
+              </mat-error>
+            }
+          </mat-form-field>
+          <mat-form-field class="flex-1" appearance="outline">
+            <mat-label translate>admin.sqs.secret-access-key</mat-label>
+            <tb-secret-key-input formControlName="secretAccessKey"></tb-secret-key-input>
+          </mat-form-field>
+        </div>
+        <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+          <mat-form-field class="flex-1" appearance="outline">
+            <mat-label translate>admin.sqs.session-token</mat-label>
+            <input matInput type="password" formControlName="sessionToken" />
+          </mat-form-field>
+        </div>
+        <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+          <mat-form-field class="flex-1" appearance="outline">
+            <mat-label translate>admin.sqs.queue-name</mat-label>
+            <input matInput formControlName="queueName" />
+          </mat-form-field>
+          <mat-form-field class="flex-1" appearance="outline">
+            <mat-label translate>admin.sqs.queue-url</mat-label>
+            <input matInput formControlName="queueUrl" />
+          </mat-form-field>
+        </div>
+        @if (sqsSettingsForm.hasError('queueIdentifierRequired') && sqsSettingsForm.get('enabled').value) {
+          <div class="tb-form-hint tb-error">
+            {{ 'admin.sqs.queue-identifier-required' | translate }}
+          </div>
+        }
+        <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+          <mat-form-field class="flex-1" appearance="outline">
+            <mat-label translate>admin.sqs.queue-type</mat-label>
+            <mat-select formControlName="queueType">
+              <mat-option value="STANDARD">{{ 'admin.sqs.standard' | translate }}</mat-option>
+              <mat-option value="FIFO">{{ 'admin.sqs.fifo' | translate }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <div class="flex-1"></div>
+        </div>
+        @if (sqsSettingsForm.get('queueType').value === 'FIFO') {
+          <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+            <mat-form-field class="flex-1" appearance="outline">
+              <mat-label translate>admin.sqs.message-group-id</mat-label>
+              <input matInput formControlName="messageGroupId" />
+            </mat-form-field>
+            <div class="tb-form-row flex-1" tb-hint-tooltip-icon="{{ 'admin.sqs.use-content-based-deduplication-hint' | translate }}">
+              <mat-checkbox formControlName="useContentBasedDeduplication">
+                {{ 'admin.sqs.use-content-based-deduplication' | translate }}
+              </mat-checkbox>
+            </div>
+          </div>
+        }
+        <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+          <mat-form-field class="flex-1" appearance="outline">
+            <mat-label translate>admin.sqs.message-retention-period</mat-label>
+            <input matInput type="number" formControlName="messageRetentionPeriod" />
+            @if (sqsSettingsForm.get('messageRetentionPeriod').hasError('min') ||
+              sqsSettingsForm.get('messageRetentionPeriod').hasError('max')) {
+              <mat-error>
+                {{ 'admin.sqs.message-retention-period-range' | translate }}
+              </mat-error>
+            }
+          </mat-form-field>
+          <div class="flex-1"></div>
+        </div>
+        <mat-expansion-panel class="tb-settings-panel" appearance="fill">
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <span translate>admin.sqs.advanced-settings</span>
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+          <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+            <mat-form-field class="flex-1" appearance="outline">
+              <mat-label translate>admin.sqs.endpoint-override</mat-label>
+              <input matInput formControlName="endpointOverride" />
+            </mat-form-field>
+            <div class="flex-1"></div>
+          </div>
+          <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+            <mat-form-field class="flex-1" appearance="outline">
+              <mat-label translate>admin.sqs.visibility-timeout</mat-label>
+              <input matInput type="number" formControlName="visibilityTimeout" />
+              @if (sqsSettingsForm.get('visibilityTimeout').hasError('min') ||
+                sqsSettingsForm.get('visibilityTimeout').hasError('max')) {
+                <mat-error>
+                  {{ 'admin.sqs.visibility-timeout-range' | translate }}
+                </mat-error>
+              }
+            </mat-form-field>
+            <mat-form-field class="flex-1" appearance="outline">
+              <mat-label translate>admin.sqs.polling-wait-time</mat-label>
+              <input matInput type="number" formControlName="pollingWaitTimeSeconds" />
+              @if (sqsSettingsForm.get('pollingWaitTimeSeconds').hasError('min') ||
+                sqsSettingsForm.get('pollingWaitTimeSeconds').hasError('max')) {
+                <mat-error>
+                  {{ 'admin.sqs.polling-wait-time-range' | translate }}
+                </mat-error>
+              }
+            </mat-form-field>
+          </div>
+          <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+            <mat-form-field class="flex-1" appearance="outline">
+              <mat-label translate>admin.sqs.max-messages-per-poll</mat-label>
+              <input matInput type="number" formControlName="maxMessagesPerPoll" />
+              @if (sqsSettingsForm.get('maxMessagesPerPoll').hasError('min') ||
+                sqsSettingsForm.get('maxMessagesPerPoll').hasError('max')) {
+                <mat-error>
+                  {{ 'admin.sqs.max-messages-per-poll-range' | translate }}
+                </mat-error>
+              }
+            </mat-form-field>
+            <div class="flex-1"></div>
+          </div>
+          <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+            <mat-form-field class="flex-1" appearance="outline">
+              <mat-label translate>admin.sqs.connection-timeout</mat-label>
+              <input matInput type="number" formControlName="connectionTimeout" />
+            </mat-form-field>
+            <mat-form-field class="flex-1" appearance="outline">
+              <mat-label translate>admin.sqs.retry-attempts</mat-label>
+              <input matInput type="number" formControlName="retryAttempts" />
+              @if (sqsSettingsForm.get('retryAttempts').hasError('min') ||
+                sqsSettingsForm.get('retryAttempts').hasError('max')) {
+                <mat-error>
+                  {{ 'admin.sqs.retry-attempts-range' | translate }}
+                </mat-error>
+              }
+            </mat-form-field>
+          </div>
+        </mat-expansion-panel>
+        <div class="flex flex-row flex-wrap items-center justify-between gap-2" style="margin-top: 16px;">
+          <button mat-button (click)="testSqsConnection()" type="button"
+                  [disabled]="sqsSettingsForm.invalid || isTestingSqsConnection">
+            @if (isTestingSqsConnection) {
+              <mat-spinner diameter="20" style="display: inline-block; margin-right: 8px;"></mat-spinner>
+            }
+            {{ 'admin.sqs.test-connection' | translate }}
+          </button>
+          <div class="flex flex-row flex-wrap items-center justify-end gap-2">
+            <button mat-button color="primary"
+                    [disabled]="sqsSettingsForm.pristine"
+                    (click)="discardSqsSettings()"
+                    type="button">{{'action.undo' | translate}}
+            </button>
+            <button mat-raised-button color="primary"
+                    [disabled]="(isLoading$ | async) || sqsSettingsForm.invalid || !sqsSettingsForm.dirty"
+                    type="submit">{{'action.save' | translate}}
+            </button>
+          </div>
+        </div>
+      </fieldset>
+    </form>
+  </mat-card-content>
+</mat-card>

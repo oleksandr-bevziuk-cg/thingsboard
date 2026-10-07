@@ -547,3 +547,38 @@ export interface LicenseUsageInfo extends LicenseInfo {
   dashboardsCount: number;
   integrationsCount: number;
 }
+
+export type SqsQueueType = 'STANDARD' | 'FIFO';
+
+export interface SqsConnectivityInfo {
+  enabled: boolean;
+  region: string;
+  accessKeyId: string;
+  secretAccessKey: string;
+  secretAccessKeyConfigured?: boolean;
+  queueName: string;
+  queueUrl: string;
+  queueType: SqsQueueType;
+  messageGroupId?: string;
+  useContentBasedDeduplication?: boolean;
+  sessionToken?: string;
+  messageRetentionPeriod?: number;
+  endpointOverride?: string;
+  visibilityTimeout?: number;
+  pollingWaitTimeSeconds?: number;
+  maxMessagesPerPoll?: number;
+  connectionTimeout?: number;
+  retryAttempts?: number;
+}
+
+export type SqsConnectivitySettings = SqsConnectivityInfo;
+
+export interface TestSqsConnectionRequest {
+  region: string;
+  accessKeyId: string;
+  secretAccessKey: string;
+  sessionToken?: string;
+  queueName?: string;
+  queueUrl?: string;
+  endpointOverride?: string;
+}
