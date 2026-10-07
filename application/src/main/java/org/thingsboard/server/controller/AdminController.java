@@ -3,6 +3,13 @@
 // SPDX-License-Identifier: Apache-2.0 AND BUSL-1.1
 package org.thingsboard.server.controller;
 
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.client.builder.AwsClientBuilder;
+import com.amazonaws.services.sqs.AmazonSQS;
+import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
+import com.amazonaws.services.sqs.model.GetQueueAttributesRequest;
+import com.amazonaws.services.sqs.model.GetQueueAttributesResult;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -583,6 +590,93 @@ public class AdminController extends BaseController {
             }
         }
         return adminSettings;
+    }
+
+    @ApiOperation(value = "Test AWS SQS connection (testAwsSqsConnection)",
+            notes = "Tests the AWS SQS integration settings to verify they are correct. "
+                    + SYSTEM_AUTHORITY_PARAGRAPH + RESOURCE_READ_CHECK)
+    @PreAuthorize("hasAuthority('SYS_ADMIN')")
+    @PostMapping(value = "/settings/testAwsSqs")
+    public void testAwsSqsConnection(
+            @Parameter(description = "AWS SQS integration settings to test.")
+            @RequestBody JsonNode sqsSettings) throws ThingsboardException {
+        SecurityUser user = getCurrentUser();
+        accessControlService.checkPermission(user, Resource.ADMIN_SETTINGS, Operation.READ);
+        try {
+            // Basic validation of required fields
+            if (!sqsSettings.has("enabled") || !sqsSettings.get("enabled").asBoolean()) {
+                throw new ThingsboardException("AWS SQS integration is not enabled", ThingsboardErrorCode.GENERAL);
+            }
+
+            String region = sqsSettings.get("region").asText();
+            String accessKeyId = sqsSettings.get("accessKeyId").asText();
+            String secretAccessKey = sqsSettings.get("secretAccessKey").asText();
+            String queueName = sqsSettings.get("queueName").asText();
+
+            if (StringUtils.isEmpty(region) || StringUtils.isEmpty(accessKeyId) ||
+                StringUtils.isEmpty(secretAccessKey) || StringUtils.isEmpty(queueName)) {
+                throw new ThingsboardException("Missing required SQS configuration fields", ThingsboardErrorCode.GENERAL);
+            }
+
+            // Create AWS SQS client with provided credentials
+            AmazonSQS sqsClient = null;
+            try {
+                BasicAWSCredentials credentials = new BasicAWSCredentials(accessKeyId, secretAccessKey);
+                AmazonSQSClientBuilder builder = AmazonSQSClientBuilder.standard()
+                        .withCredentials(new AWSStaticCredentialsProvider(credentials))
+                        .withRegion(region);
+
+                // Handle endpoint override for custom/local SQS services
+                if (sqsSettings.has("endpointOverride") && !sqsSettings.get("endpointOverride").isNull()) {
+                    String endpointOverride = sqsSettings.get("endpointOverride").asText();
+                    if (!StringUtils.isEmpty(endpointOverride)) {
+                        builder.withEndpointConfiguration(
+                                new AwsClientBuilder.EndpointConfiguration(endpointOverride, region)
+                        );
+                    }
+                }
+
+                sqsClient = builder.build();
+
+                // Try to get queue URL - this will fail if credentials or queue doesn't exist
+                String queueUrl = queueName;
+                if (sqsSettings.has("queueUrl") && !sqsSettings.get("queueUrl").isNull()) {
+                    String providedUrl = sqsSettings.get("queueUrl").asText();
+                    if (!StringUtils.isEmpty(providedUrl)) {
+                        queueUrl = providedUrl;
+                    }
+                }
+
+                // Get queue attributes to verify connection and queue existence
+                GetQueueAttributesRequest request = new GetQueueAttributesRequest()
+                        .withQueueUrl(queueUrl)
+                        .withAttributeNames("All");
+
+                GetQueueAttributesResult result = sqsClient.getQueueAttributes(request);
+
+                log.info("AWS SQS connection test successful for region: {} and queue: {}", region, queueName);
+
+                auditLogService.logEntityAction(user.getTenantId(), user.getCustomerId(), user.getId(),
+                        user.getName(), user.getId(), user, ActionType.CREDENTIALS_READ, null, "AWS SQS connection test");
+            } catch (Exception e) {
+                String errorMsg = "Failed to connect to AWS SQS: " + e.getMessage();
+                log.warn("AWS SQS connection test failed for region: {} - {}", region, e.getMessage());
+                throw new ThingsboardException(errorMsg, ThingsboardErrorCode.GENERAL);
+            } finally {
+                if (sqsClient != null) {
+                    sqsClient.shutdown();
+                }
+            }
+        } catch (ThingsboardException e) {
+            auditLogService.logEntityAction(user.getTenantId(), user.getCustomerId(), user.getId(),
+                    user.getName(), user.getId(), user, ActionType.CREDENTIALS_READ, e, "AWS SQS connection test failed");
+            throw e;
+        } catch (Exception e) {
+            auditLogService.logEntityAction(user.getTenantId(), user.getCustomerId(), user.getId(),
+                    user.getName(), user.getId(), user, ActionType.CREDENTIALS_READ, e, "AWS SQS connection test failed");
+            throw new ThingsboardException("Failed to test AWS SQS connection: " + e.getMessage(),
+                    ThingsboardErrorCode.GENERAL);
+        }
     }
 
 }

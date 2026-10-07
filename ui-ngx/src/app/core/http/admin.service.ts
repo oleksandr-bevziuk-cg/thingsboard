@@ -8,6 +8,7 @@ import { HttpClient } from '@angular/common/http';
 import {
   AdminSettings,
   AutoCommitSettings,
+  AwsSqsIntegrationSettings,
   FeaturesInfo,
   JwtSettings,
   LicenseUsageInfo,
@@ -167,5 +168,10 @@ export class AdminService {
 
   public getMailConfigTemplate(config?: RequestConfig): Observable<Array<MailConfigTemplate>> {
     return this.http.get<Array<MailConfigTemplate>>('/api/mail/config/template', defaultHttpOptionsFromConfig(config));
+  }
+
+  public testAwsSqsConnection(settings: AwsSqsIntegrationSettings,
+                              config?: RequestConfig): Observable<void> {
+    return this.http.post<void>('/api/admin/settings/testAwsSqs', settings, defaultHttpOptionsFromConfig(config));
   }
 }

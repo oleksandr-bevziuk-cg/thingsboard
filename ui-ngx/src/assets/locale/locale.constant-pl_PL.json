@@ -477,7 +477,55 @@
         "notifications-settings": "Ustawienia powiadomień",
         "slack-api-token": "Token API Slacka",
         "slack": "Slack",
-        "slack-settings": "Ustawienia Slacka"
+        "slack-settings": "Ustawienia Slacka",
+        "aws-sqs": {
+            "aws-sqs": "AWS SQS Integration",
+            "enable-aws-sqs": "Enable AWS SQS Integration",
+            "enable-aws-sqs-hint": "Enable this integration to send messages to an Amazon SQS queue.",
+            "basic-config": "Basic Configuration",
+            "region": "AWS Region",
+            "region-required": "AWS Region is required.",
+            "access-key-id": "Access Key ID",
+            "access-key-id-required": "Access Key ID is required.",
+            "secret-access-key": "Secret Access Key",
+            "secret-access-key-required": "Secret Access Key is required.",
+            "credentials-masked-hint": "Credentials are securely stored and masked for security.",
+            "queue-config": "Queue Configuration",
+            "queue-name": "Queue Name",
+            "queue-name-hint": "Name of the SQS queue (e.g., my-queue)",
+            "queue-url": "Queue URL",
+            "queue-url-hint": "Full URL of the SQS queue (optional, can use queue name instead)",
+            "queue-type": "Queue Type",
+            "queue-type-standard": "Standard",
+            "queue-type-fifo": "FIFO",
+            "queue-type-hint": "Standard queues offer best-effort ordering, FIFO queues guarantee message order.",
+            "message-group-id": "Message Group ID",
+            "message-group-id-required": "Message Group ID is required for FIFO queues.",
+            "message-group-id-hint": "For FIFO queues: the tag that specifies which group a message belongs to.",
+            "deduplication-id": "Deduplication ID",
+            "deduplication-id-hint": "For FIFO queues with deduplication enabled: unique token for deduplication.",
+            "advanced-settings": "Advanced Settings",
+            "endpoint-override": "Endpoint Override",
+            "endpoint-override-hint": "For local testing or custom SQS endpoints (e.g., LocalStack)",
+            "message-visibility-timeout": "Message Visibility Timeout (seconds)",
+            "message-visibility-timeout-hint": "How long a message is invisible after being received (0-43200 seconds)",
+            "message-visibility-timeout-range": "Visibility timeout must be between 0 and 43200 seconds.",
+            "polling-wait-time": "Polling Wait Time (seconds)",
+            "polling-wait-time-hint": "Long polling wait time for receive operations (0-20 seconds)",
+            "polling-wait-time-range": "Polling wait time must be between 0 and 20 seconds.",
+            "max-messages-per-poll": "Max Messages Per Poll",
+            "max-messages-per-poll-hint": "Maximum number of messages to receive per poll (1-10)",
+            "max-messages-per-poll-range": "Max messages per poll must be between 1 and 10.",
+            "retry-max-attempts": "Retry Max Attempts",
+            "retry-max-attempts-hint": "Maximum number of retry attempts for failed requests",
+            "retry-max-attempts-min": "Retry max attempts must be 0 or greater.",
+            "retry-backoff-ms": "Retry Backoff (milliseconds)",
+            "retry-backoff-ms-hint": "Initial backoff time for exponential backoff retry strategy",
+            "retry-backoff-ms-min": "Retry backoff must be 0 or greater.",
+            "test-connection": "Test Connection"
+            "connection-test-success": "AWS SQS connection test successful!",
+            "connection-test-failed": "AWS SQS connection test failed"
+        }
     },
     "ai-assistant": {
         "configure-with-ai": "Skonfiguruj z AI",
@@ -6318,23 +6366,23 @@
         },
         "base-url-required": "Podstawowy adres URL jest wymagany."
     },
-    "widgets":{
-        "background":{
-            "background":"Tło",
-            "background-settings":"Ustawienia tła",
-            "background-type-image":"Obraz",
-            "background-type-color":"Kolor",
-            "image-url":"URL obrazu",
-            "overlay":"Nakładka",
-            "enable-overlay":"Włącz nakładkę",
-            "blur":"Rozmycie",
-            "preview":"Podgląd"
+    "widgets": {
+        "background": {
+            "background": "Tło",
+            "background-settings": "Ustawienia tła",
+            "background-type-image": "Obraz",
+            "background-type-color": "Kolor",
+            "image-url": "URL obrazu",
+            "overlay": "Nakładka",
+            "enable-overlay": "Włącz nakładkę",
+            "blur": "Rozmycie",
+            "preview": "Podgląd"
         },
-        "bar-chart":{
-            "bar-appearance":"Wygląd słupka",
-            "label-on-bar":"Etykieta na słupku",
-            "value-on-bar":"Wartość na słupku",
-            "bar-chart-style":"Styl wykresu słupkowego"
+        "bar-chart": {
+            "bar-appearance": "Wygląd słupka",
+            "label-on-bar": "Etykieta na słupku",
+            "value-on-bar": "Wartość na słupku",
+            "bar-chart-style": "Styl wykresu słupkowego"
         },
         "battery-level": {
             "layout": "Layout",
@@ -7016,26 +7064,26 @@
                 "false": "Dwukierunkowe",
                 "true": "Jednokierunkowa"
             },
-            "general-settings":"Ustawienia ogólne",
-            "enable-filter":"Włącz filtr",
-            "enable-sticky-header":"Wyświetl nagłówek podczas przewijania",
-            "enable-sticky-action":"Wyświetl kolumnę akcji podczas przewijania",
-            "display-request-details":"Wyświetl szczegóły żądania",
-            "allow-send-request":"Zezwalaj na wysyłanie żądań RPC",
-            "allow-delete-request":"Zezwalaj na usuwanie żądań",
-            "columns-settings":"Ustawienia kolumn",
-            "display-columns":"Wyświetlane kolumny",
-            "column":"Kolumna",
-            "no-columns-found":"Nie znaleziono kolumn",
-            "no-columns-matching":"'{{column}}' nie znaleziono."
+            "general-settings": "Ustawienia ogólne",
+            "enable-filter": "Włącz filtr",
+            "enable-sticky-header": "Wyświetl nagłówek podczas przewijania",
+            "enable-sticky-action": "Wyświetl kolumnę akcji podczas przewijania",
+            "display-request-details": "Wyświetl szczegóły żądania",
+            "allow-send-request": "Zezwalaj na wysyłanie żądań RPC",
+            "allow-delete-request": "Zezwalaj na usuwanie żądań",
+            "columns-settings": "Ustawienia kolumn",
+            "display-columns": "Wyświetlane kolumny",
+            "column": "Kolumna",
+            "no-columns-found": "Nie znaleziono kolumn",
+            "no-columns-matching": "'{{column}}' nie znaleziono."
         },
-        "range-chart":{
-            "chart":"Wykres",
-            "data-zoom":"Powiększenie danych",
-            "range-colors":"Kolory zakresu",
-            "out-of-range-color":"Kolor poza zakresem",
-            "fill-area":"Wypełnij obszar",
-            "range-chart-style":"Styl wykresu zakresu"
+        "range-chart": {
+            "chart": "Wykres",
+            "data-zoom": "Powiększenie danych",
+            "range-colors": "Kolory zakresu",
+            "out-of-range-color": "Kolor poza zakresem",
+            "fill-area": "Wypełnij obszar",
+            "range-chart-style": "Styl wykresu zakresu"
         },
         "rpc": {
             "value-settings": "Ustawienia wartości",

@@ -85,6 +85,26 @@ export interface DeviceConnectivityInfo {
 
 export type DeviceConnectivitySettings = Record<DeviceConnectivityProtocol, DeviceConnectivityInfo>;
 
+export type SQSQueueType = 'STANDARD' | 'FIFO';
+
+export interface AwsSqsIntegrationSettings {
+  enabled: boolean;
+  region: string;
+  accessKeyId?: string;
+  secretAccessKey?: string;
+  queueName: string;
+  queueUrl?: string;
+  queueType: SQSQueueType;
+  messageGroupId?: string;
+  deduplicationId?: string;
+  endpointOverride?: string;
+  messageVisibilityTimeout?: number;
+  pollingWaitTime?: number;
+  maxMessagesPerPoll?: number;
+  retryMaxAttempts?: number;
+  retryBackoffMs?: number;
+}
+
 export enum MailTemplate {
   test = 'test',
   activation = 'activation',

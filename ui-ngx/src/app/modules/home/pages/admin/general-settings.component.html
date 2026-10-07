@@ -130,3 +130,224 @@
     </section>
   </mat-card-content>
 </mat-card>
+<mat-card appearance="outlined" class="settings-card">
+  <mat-card-header>
+    <mat-card-title>
+      <div class="mat-headline-5" translate>admin.aws-sqs.aws-sqs</div>
+    </mat-card-title>
+  </mat-card-header>
+  @if (isLoading$ | async) {
+    <mat-progress-bar color="warn" mode="indeterminate">
+    </mat-progress-bar>
+  } @else {
+    <div style="height: 4px;"></div>
+  }
+  <mat-card-content>
+    <form [formGroup]="awsSqsSettingsForm" (ngSubmit)="saveAwsSqsSettings()"
+          class="tb-form-panel no-border no-padding">
+      <fieldset [disabled]="isLoading$ | async">
+        <div class="tb-form-panel stroked no-padding-bottom">
+          <mat-slide-toggle class="mat-slide" formControlName="enabled">
+            {{ 'admin.aws-sqs.enable-aws-sqs' | translate }}
+          </mat-slide-toggle>
+          <div class="tb-form-hint">{{ 'admin.aws-sqs.enable-aws-sqs-hint' | translate }}</div>
+        </div>
+
+        <!-- Basic Configuration Section -->
+        <div class="tb-form-panel stroked no-padding-bottom">
+          <div class="mat-subtitle-1" translate>admin.aws-sqs.basic-config</div>
+          <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+            <mat-form-field class="flex-1" appearance="outline">
+              <mat-label translate>admin.aws-sqs.region</mat-label>
+              <input matInput formControlName="region" placeholder="us-east-1"/>
+              @if (awsSqsSettingsForm.get('region').hasError('required')) {
+                <mat-error>
+                  {{ 'admin.aws-sqs.region-required' | translate }}
+                </mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+            <mat-form-field class="flex-1" appearance="outline">
+              <mat-label translate>admin.aws-sqs.access-key-id</mat-label>
+              <input matInput formControlName="accessKeyId" type="password"/>
+              <mat-hint translate>admin.aws-sqs.credentials-masked-hint</mat-hint>
+              @if (awsSqsSettingsForm.get('accessKeyId').hasError('required')) {
+                <mat-error>
+                  {{ 'admin.aws-sqs.access-key-id-required' | translate }}
+                </mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+            <mat-form-field class="flex-1" appearance="outline">
+              <mat-label translate>admin.aws-sqs.secret-access-key</mat-label>
+              <input matInput formControlName="secretAccessKey" type="password"/>
+              <mat-hint translate>admin.aws-sqs.credentials-masked-hint</mat-hint>
+              @if (awsSqsSettingsForm.get('secretAccessKey').hasError('required')) {
+                <mat-error>
+                  {{ 'admin.aws-sqs.secret-access-key-required' | translate }}
+                </mat-error>
+              }
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Queue Configuration Section -->
+        <div class="tb-form-panel stroked no-padding-bottom">
+          <div class="mat-subtitle-1" translate>admin.aws-sqs.queue-config</div>
+          <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+            <mat-form-field class="flex-1" appearance="outline">
+              <mat-label translate>admin.aws-sqs.queue-name</mat-label>
+              <input matInput formControlName="queueName" placeholder="my-queue"/>
+              <mat-hint translate>admin.aws-sqs.queue-name-hint</mat-hint>
+            </mat-form-field>
+          </div>
+
+          <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+            <mat-form-field class="flex-1" appearance="outline">
+              <mat-label translate>admin.aws-sqs.queue-url</mat-label>
+              <input matInput formControlName="queueUrl" placeholder="https://sqs.region.amazonaws.com/123456789/my-queue"/>
+              <mat-hint translate>admin.aws-sqs.queue-url-hint</mat-hint>
+            </mat-form-field>
+          </div>
+
+          <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+            <mat-form-field class="flex-1" appearance="outline">
+              <mat-label translate>admin.aws-sqs.queue-type</mat-label>
+              <mat-select formControlName="queueType">
+                <mat-option value="STANDARD">{{ 'admin.aws-sqs.queue-type-standard' | translate }}</mat-option>
+                <mat-option value="FIFO">{{ 'admin.aws-sqs.queue-type-fifo' | translate }}</mat-option>
+              </mat-select>
+              <mat-hint translate>admin.aws-sqs.queue-type-hint</mat-hint>
+            </mat-form-field>
+          </div>
+
+          <!-- FIFO-specific fields -->
+          @if (awsSqsSettingsForm.get('queueType').value === 'FIFO') {
+            <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+              <mat-form-field class="flex-1" appearance="outline">
+                <mat-label translate>admin.aws-sqs.message-group-id</mat-label>
+                <input matInput formControlName="messageGroupId" placeholder="group-1"/>
+                <mat-hint translate>admin.aws-sqs.message-group-id-hint</mat-hint>
+                @if (awsSqsSettingsForm.get('messageGroupId').hasError('required')) {
+                  <mat-error>
+                    {{ 'admin.aws-sqs.message-group-id-required' | translate }}
+                  </mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+              <mat-form-field class="flex-1" appearance="outline">
+                <mat-label translate>admin.aws-sqs.deduplication-id</mat-label>
+                <input matInput formControlName="deduplicationId" placeholder="optional-dedup-id"/>
+                <mat-hint translate>admin.aws-sqs.deduplication-id-hint</mat-hint>
+              </mat-form-field>
+            </div>
+          }
+        </div>
+
+        <!-- Advanced Settings Section -->
+        <div class="tb-form-panel stroked no-padding-bottom">
+          <div class="mat-subtitle-1" translate>admin.aws-sqs.advanced-settings</div>
+          <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+            <mat-form-field class="flex-1" appearance="outline">
+              <mat-label translate>admin.aws-sqs.endpoint-override</mat-label>
+              <input matInput formControlName="endpointOverride" placeholder="http://localhost:9324"/>
+              <mat-hint translate>admin.aws-sqs.endpoint-override-hint</mat-hint>
+            </mat-form-field>
+          </div>
+
+          <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+            <mat-form-field class="flex-1" appearance="outline">
+              <mat-label translate>admin.aws-sqs.message-visibility-timeout</mat-label>
+              <input matInput type="number" min="0" max="43200" formControlName="messageVisibilityTimeout"/>
+              <mat-hint translate>admin.aws-sqs.message-visibility-timeout-hint</mat-hint>
+              @if (awsSqsSettingsForm.get('messageVisibilityTimeout').hasError('min') ||
+                   awsSqsSettingsForm.get('messageVisibilityTimeout').hasError('max')) {
+                <mat-error>
+                  {{ 'admin.aws-sqs.message-visibility-timeout-range' | translate }}
+                </mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+            <mat-form-field class="flex-1" appearance="outline">
+              <mat-label translate>admin.aws-sqs.polling-wait-time</mat-label>
+              <input matInput type="number" min="0" max="20" formControlName="pollingWaitTime"/>
+              <mat-hint translate>admin.aws-sqs.polling-wait-time-hint</mat-hint>
+              @if (awsSqsSettingsForm.get('pollingWaitTime').hasError('min') ||
+                   awsSqsSettingsForm.get('pollingWaitTime').hasError('max')) {
+                <mat-error>
+                  {{ 'admin.aws-sqs.polling-wait-time-range' | translate }}
+                </mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+            <mat-form-field class="flex-1" appearance="outline">
+              <mat-label translate>admin.aws-sqs.max-messages-per-poll</mat-label>
+              <input matInput type="number" min="1" max="10" formControlName="maxMessagesPerPoll"/>
+              <mat-hint translate>admin.aws-sqs.max-messages-per-poll-hint</mat-hint>
+              @if (awsSqsSettingsForm.get('maxMessagesPerPoll').hasError('min') ||
+                   awsSqsSettingsForm.get('maxMessagesPerPoll').hasError('max')) {
+                <mat-error>
+                  {{ 'admin.aws-sqs.max-messages-per-poll-range' | translate }}
+                </mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+            <mat-form-field class="flex-1" appearance="outline">
+              <mat-label translate>admin.aws-sqs.retry-max-attempts</mat-label>
+              <input matInput type="number" min="0" formControlName="retryMaxAttempts"/>
+              <mat-hint translate>admin.aws-sqs.retry-max-attempts-hint</mat-hint>
+              @if (awsSqsSettingsForm.get('retryMaxAttempts').hasError('min')) {
+                <mat-error>
+                  {{ 'admin.aws-sqs.retry-max-attempts-min' | translate }}
+                </mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <div class="tb-form-row column-xs no-border no-padding tb-standard-fields">
+            <mat-form-field class="flex-1" appearance="outline">
+              <mat-label translate>admin.aws-sqs.retry-backoff-ms</mat-label>
+              <input matInput type="number" min="0" formControlName="retryBackoffMs"/>
+              <mat-hint translate>admin.aws-sqs.retry-backoff-ms-hint</mat-hint>
+              @if (awsSqsSettingsForm.get('retryBackoffMs').hasError('min')) {
+                <mat-error>
+                  {{ 'admin.aws-sqs.retry-backoff-ms-min' | translate }}
+                </mat-error>
+              }
+            </mat-form-field>
+          </div>
+        </div>
+      </fieldset>
+
+      <div class="flex flex-row flex-wrap items-center justify-end gap-2">
+        <button mat-button color="primary"
+                type="button"
+                (click)="testAwsSqsConnection()"
+                [disabled]="awsSqsSettingsForm.invalid || !(awsSqsSettingsForm.get('enabled').value)">
+          {{ 'admin.aws-sqs.test-connection' | translate }}
+        </button>
+        <button mat-button color="primary"
+                [disabled]="awsSqsSettingsForm.pristine"
+                (click)="discardAwsSqsSettings()"
+                type="button">{{'action.undo' | translate}}
+        </button>
+        <button mat-raised-button color="primary"
+                [disabled]="(isLoading$ | async) || awsSqsSettingsForm.invalid || !awsSqsSettingsForm.dirty"
+                type="submit">{{'action.save' | translate}}
+        </button>
+      </div>
+    </form>
+  </mat-card-content>
+</mat-card>

@@ -49,7 +49,7 @@
         "import": "وارد کردن",
         "export": "صدور",
         "share-via": "{{provider}} اشتراک گذاري از طريق"
-	},
+    },
     "aggregation": {
         "aggregation": "تجميع",
         "function": "تابع تجميع داده ها",
@@ -84,7 +84,55 @@
         "timeout-invalid": ".مهلت، به نظر نمي آيد معتبر باشد",
         "enable-tls": "TLS فعال سازي",
         "tls-version": "نسخه TLS",
-        "send-test-mail": "ارسال پيام آزمايشي"
+        "send-test-mail": "ارسال پيام آزمايشي",
+        "aws-sqs": {
+            "aws-sqs": "AWS SQS Integration",
+            "enable-aws-sqs": "Enable AWS SQS Integration",
+            "enable-aws-sqs-hint": "Enable this integration to send messages to an Amazon SQS queue.",
+            "basic-config": "Basic Configuration",
+            "region": "AWS Region",
+            "region-required": "AWS Region is required.",
+            "access-key-id": "Access Key ID",
+            "access-key-id-required": "Access Key ID is required.",
+            "secret-access-key": "Secret Access Key",
+            "secret-access-key-required": "Secret Access Key is required.",
+            "credentials-masked-hint": "Credentials are securely stored and masked for security.",
+            "queue-config": "Queue Configuration",
+            "queue-name": "Queue Name",
+            "queue-name-hint": "Name of the SQS queue (e.g., my-queue)",
+            "queue-url": "Queue URL",
+            "queue-url-hint": "Full URL of the SQS queue (optional, can use queue name instead)",
+            "queue-type": "Queue Type",
+            "queue-type-standard": "Standard",
+            "queue-type-fifo": "FIFO",
+            "queue-type-hint": "Standard queues offer best-effort ordering, FIFO queues guarantee message order.",
+            "message-group-id": "Message Group ID",
+            "message-group-id-required": "Message Group ID is required for FIFO queues.",
+            "message-group-id-hint": "For FIFO queues: the tag that specifies which group a message belongs to.",
+            "deduplication-id": "Deduplication ID",
+            "deduplication-id-hint": "For FIFO queues with deduplication enabled: unique token for deduplication.",
+            "advanced-settings": "Advanced Settings",
+            "endpoint-override": "Endpoint Override",
+            "endpoint-override-hint": "For local testing or custom SQS endpoints (e.g., LocalStack)",
+            "message-visibility-timeout": "Message Visibility Timeout (seconds)",
+            "message-visibility-timeout-hint": "How long a message is invisible after being received (0-43200 seconds)",
+            "message-visibility-timeout-range": "Visibility timeout must be between 0 and 43200 seconds.",
+            "polling-wait-time": "Polling Wait Time (seconds)",
+            "polling-wait-time-hint": "Long polling wait time for receive operations (0-20 seconds)",
+            "polling-wait-time-range": "Polling wait time must be between 0 and 20 seconds.",
+            "max-messages-per-poll": "Max Messages Per Poll",
+            "max-messages-per-poll-hint": "Maximum number of messages to receive per poll (1-10)",
+            "max-messages-per-poll-range": "Max messages per poll must be between 1 and 10.",
+            "retry-max-attempts": "Retry Max Attempts",
+            "retry-max-attempts-hint": "Maximum number of retry attempts for failed requests",
+            "retry-max-attempts-min": "Retry max attempts must be 0 or greater.",
+            "retry-backoff-ms": "Retry Backoff (milliseconds)",
+            "retry-backoff-ms-hint": "Initial backoff time for exponential backoff retry strategy",
+            "retry-backoff-ms-min": "Retry backoff must be 0 or greater.",
+            "test-connection": "Test Connection"
+            "connection-test-success": "AWS SQS connection test successful!",
+            "connection-test-failed": "AWS SQS connection test failed"
+        }
     },
     "ai-assistant": {
         "configure-with-ai": "پیکربندی با هوش مصنوعی",
@@ -357,7 +405,7 @@
         "message": "شما تغييراتي ذخيره نشده داريد. از ترک اين صفحه مطمئنيد؟",
         "html-message": "از ترک اين صفحه مطمئنيد؟<br/>.شما تغييراتي ذخيره نشده داريد",
         "title": "تغييرات ذخيره نشده   "
-		},
+    },
     "contact": {
         "country": "کشور",
         "city": "شهر",
@@ -634,7 +682,7 @@
         "no-key-matching": ".يافت نشد'{{key}}'",
         "no-keys-found": ".هيچ کليدي يافت نشد",
         "create-new-alias": "!ايجاد يک نام مستعار جديد",
-		"create-new-key": "!ايجاد يک کليد جديد",
+        "create-new-key": "!ايجاد يک کليد جديد",
         "duplicate-alias-error": ".نام مستعار در داشبورد بايد يکتا باشد<br>'{{alias}}'نام مستعار مشابه يافت شد",
         "configure-alias": "نام مستعار '{{alias}}' پيکربندي",
         "no-devices-matching": "مطابقت داشته باشد وجود ندارد '{{entity}}' هيچ دستگاهي که با ",
@@ -650,7 +698,7 @@
         "device-name-filter-no-device-matched": ".شروع شود يافت نشد '{{device}}' هيچ دستگاهي که با",
         "add": "افزودن دستگاه",
         "assign-to-customer": "تخصيص به مشتري",
-		"assign-device-to-customer": "تخصيص دستگاه (ها) به مشتري",
+        "assign-device-to-customer": "تخصيص دستگاه (ها) به مشتري",
         "assign-device-to-customer-text": "لطفا دستگاه ها را انتخاب کنيد تا به مشتري تخصيص يابد",
         "make-public": "عمومي سازي دستگاه",
         "make-private": "شخصي سازي دستگاه",
@@ -906,7 +954,7 @@
         "timeseries-placeholder": "سري هاي زماني",
         "target-entity": "موجودي هدف",
         "attributes-propagation": "انتشار ويژگي ها",
-        "attributes-propagation-hint": "هر بار که شما نمايش موجودي را بروز رساني يا ذخيره مي کنيد، نمايش موجودي بصور خودکار ويژگي هاي تعيين شده را از موجودي هدف کپي مي کند و به دلايل عملکردي، ويژگي هاي موجودي هدف، با هر بار تغيير ويژگي، در نمايش موجودي انتشار نمي يابند. مي توانيد با پيکربندي گره قواعد در زنجيره قواعد خود و پيوند دهي \"Post attributes\"  و \"Attributes Updated\"  آن به گره قواعد جديد، انتشار خودکار \"copy to view\"  را ممکن سازيد ." ,
+        "attributes-propagation-hint": "هر بار که شما نمايش موجودي را بروز رساني يا ذخيره مي کنيد، نمايش موجودي بصور خودکار ويژگي هاي تعيين شده را از موجودي هدف کپي مي کند و به دلايل عملکردي، ويژگي هاي موجودي هدف، با هر بار تغيير ويژگي، در نمايش موجودي انتشار نمي يابند. مي توانيد با پيکربندي گره قواعد در زنجيره قواعد خود و پيوند دهي \"Post attributes\"  و \"Attributes Updated\"  آن به گره قواعد جديد، انتشار خودکار \"copy to view\"  را ممکن سازيد .",
         "timeseries-data": "داده ي سري هاي زماني",
         "timeseries-data-hint": "کليدهاي داده ي سري هاي زمانيِ موجوديِ هدف را پيکربندي کنيد تا در دسترسِ نمايش موجودي باشند. اين سري هاي زماني، فقط خواندني است"
     },
@@ -1080,7 +1128,6 @@
         "modbus-register-count": "شمارش ثبت",
         "modbus-register-count-range": ".شمارش ثبت بايد مقداري مثبت باشد",
         "modbus-byte-order": "ترتيب بايت",
-
         "sync": {
             "status": "وضعيت",
             "sync": "همگام",
@@ -1088,7 +1135,6 @@
             "last-sync-time": "آخرين زمان همگام سازي",
             "not-available": "خارج از دسترس"
         },
-
         "export-extensions-configuration": "صدور پيکربندي افزونه ها",
         "import-extensions-configuration": "وارد کردن پيکربندي افزونه ها",
         "import-extensions": "وارد کردن افزونه ها",
@@ -1338,7 +1384,7 @@
         "test": "آزمايش",
         "help": "کمک"
     },
-        "tenant": {
+    "tenant": {
         "tenant": "کاربر",
         "tenants": "کاربران",
         "management": "مديريت کاربران",
