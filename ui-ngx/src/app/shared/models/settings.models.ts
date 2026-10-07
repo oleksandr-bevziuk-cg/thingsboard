@@ -83,7 +83,42 @@ export interface DeviceConnectivityInfo {
   port: number;
 }
 
-export type DeviceConnectivitySettings = Record<DeviceConnectivityProtocol, DeviceConnectivityInfo>;
+export enum SqsQueueType {
+  STANDARD = 'STANDARD',
+  FIFO = 'FIFO'
+}
+
+export const sqsQueueTypeTranslationMap = new Map<SqsQueueType, string>([
+  [SqsQueueType.STANDARD, 'admin.device-connectivity.sqs.queue-type-standard'],
+  [SqsQueueType.FIFO, 'admin.device-connectivity.sqs.queue-type-fifo']
+]);
+
+export interface DeviceConnectivitySqsInfo {
+  enabled: boolean;
+  region: string;
+  accessKeyId: string;
+  secretAccessKey?: string;
+  showChangeSecret?: boolean;
+  changeSecret?: boolean;
+  sessionToken?: string;
+  queueName: string;
+  queueUrl?: string;
+  queueType: SqsQueueType;
+  messageGroupId?: string;
+  contentBasedDeduplication?: boolean;
+  endpoint?: string;
+  visibilityTimeoutSeconds?: number;
+  pollingWaitTimeSeconds?: number;
+  maxNumberOfMessages?: number;
+  messageRetentionPeriodSeconds?: number;
+  connectionTimeoutMs?: number;
+  requestTimeoutMs?: number;
+  maxRetryAttempts?: number;
+}
+
+export type DeviceConnectivitySettings = Record<DeviceConnectivityProtocol, DeviceConnectivityInfo> & {
+  sqs?: DeviceConnectivitySqsInfo;
+};
 
 export enum MailTemplate {
   test = 'test',

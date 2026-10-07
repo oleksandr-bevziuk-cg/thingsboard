@@ -9,12 +9,18 @@ import {
   AdminSettings,
   DeviceConnectivityProtocol,
   DeviceConnectivitySettings,
-  GeneralSettings
+  DeviceConnectivitySqsInfo,
+  GeneralSettings,
+  SqsQueueType,
+  sqsQueueTypeTranslationMap
 } from '@shared/models/settings.models';
 import { AdminService } from '@core/http/admin.service';
 import { HasConfirmForm } from '@core/guards/confirm-on-exit.guard';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { ActionNotificationShow } from '@core/notification/notification.actions';
+import { TranslateService } from '@ngx-translate/core';
+import { isUndefinedOrNull } from '@core/utils';
 
 @Component({
     selector: 'tb-general-settings',
@@ -27,7 +33,14 @@ export class GeneralSettingsComponent extends PageComponent implements HasConfir
   generalSettings: FormGroup;
   deviceConnectivitySettingsForm: FormGroup;
 
-  protocol: DeviceConnectivityProtocol = 'http';
+  protocol: DeviceConnectivityProtocol | 'sqs' = 'http';
+
+  sqsQueueTypes = Object.values(SqsQueueType);
+  sqsQueueTypeTranslationMap = sqsQueueTypeTranslationMap;
+
+  testingSqsConnection = false;
+  sqsTestResult: 'success' | 'failure' | null = null;
+  sqsTestErrorMessage = '';
 
   private adminSettings: AdminSettings<GeneralSettings>;
   private deviceConnectivitySettings: AdminSettings<DeviceConnectivitySettings>;
@@ -36,6 +49,7 @@ export class GeneralSettingsComponent extends PageComponent implements HasConfir
 
   constructor(protected store: Store<AppState>,
               private adminService: AdminService,
+              private translate: TranslateService,
               public fb: FormBuilder) {
     super(store);
     this.buildGeneralServerSettingsForm();
@@ -66,8 +80,90 @@ export class GeneralSettingsComponent extends PageComponent implements HasConfir
       mqtt: this.buildDeviceConnectivityInfoForm(),
       mqtts: this.buildDeviceConnectivityInfoForm(),
       coap: this.buildDeviceConnectivityInfoForm(),
-      coaps: this.buildDeviceConnectivityInfoForm()
+      coaps: this.buildDeviceConnectivityInfoForm(),
+      sqs: this.buildDeviceConnectivitySqsInfoForm()
     });
+  }
+
+  private buildDeviceConnectivitySqsInfoForm(): FormGroup {
+    const formGroup = this.fb.group({
+      enabled: [false, []],
+      region: [{value: 'us-east-1', disabled: true}, [Validators.required]],
+      accessKeyId: [{value: '', disabled: true}, [Validators.required]],
+      secretAccessKey: [{value: '', disabled: true}],
+      showChangeSecret: [false],
+      changeSecret: [false],
+      sessionToken: [{value: '', disabled: true}],
+      queueName: [{value: '', disabled: true}, [Validators.required]],
+      queueUrl: [{value: '', disabled: true}, [Validators.pattern(/^https?:\/\/.+/)]],
+      queueType: [{value: SqsQueueType.STANDARD, disabled: true}, [Validators.required]],
+      messageGroupId: [{value: '', disabled: true}],
+      contentBasedDeduplication: [{value: false, disabled: true}],
+      endpoint: [{value: '', disabled: true}, [Validators.pattern(/^https?:\/\/.+/)]],
+      visibilityTimeoutSeconds: [{value: 30, disabled: true}, [Validators.min(0), Validators.max(43200)]],
+      pollingWaitTimeSeconds: [{value: 20, disabled: true}, [Validators.min(0), Validators.max(20)]],
+      maxNumberOfMessages: [{value: 10, disabled: true}, [Validators.min(1), Validators.max(10)]],
+      messageRetentionPeriodSeconds: [{value: 345600, disabled: true}, [Validators.min(60), Validators.max(1209600)]],
+      connectionTimeoutMs: [{value: 10000, disabled: true}, [Validators.min(0)]],
+      requestTimeoutMs: [{value: 10000, disabled: true}, [Validators.min(0)]],
+      maxRetryAttempts: [{value: 3, disabled: true}, [Validators.min(0), Validators.max(10)]]
+    });
+
+    const setEnabled = (enabled: boolean) => {
+      const controls = ['region', 'accessKeyId', 'sessionToken', 'queueName', 'queueUrl', 'queueType',
+        'endpoint', 'visibilityTimeoutSeconds', 'pollingWaitTimeSeconds', 'maxNumberOfMessages',
+        'messageRetentionPeriodSeconds', 'connectionTimeoutMs', 'requestTimeoutMs', 'maxRetryAttempts'];
+      controls.forEach(name => {
+        if (enabled) {
+          formGroup.get(name).enable({emitEvent: false});
+        } else {
+          formGroup.get(name).disable({emitEvent: false});
+        }
+      });
+      this.updateSqsSecretControlState(formGroup, enabled);
+      this.updateSqsFifoControlsState(formGroup, enabled);
+    };
+
+    formGroup.get('enabled').valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(value => setEnabled(value));
+
+    formGroup.get('queueType').valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => this.updateSqsFifoControlsState(formGroup, formGroup.get('enabled').value));
+
+    formGroup.get('changeSecret').valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => this.updateSqsSecretControlState(formGroup, formGroup.get('enabled').value));
+
+    return formGroup;
+  }
+
+  private updateSqsSecretControlState(formGroup: FormGroup, enabled: boolean): void {
+    const secretControl = formGroup.get('secretAccessKey');
+    const showChangeSecret = formGroup.get('showChangeSecret').value;
+    const changeSecret = formGroup.get('changeSecret').value;
+    if (enabled && (!showChangeSecret || changeSecret)) {
+      secretControl.enable({emitEvent: false});
+    } else {
+      secretControl.disable({emitEvent: false});
+    }
+  }
+
+  private updateSqsFifoControlsState(formGroup: FormGroup, enabled: boolean): void {
+    const isFifo = formGroup.get('queueType').value === SqsQueueType.FIFO;
+    const messageGroupIdControl = formGroup.get('messageGroupId');
+    const dedupControl = formGroup.get('contentBasedDeduplication');
+    if (enabled && isFifo) {
+      messageGroupIdControl.enable({emitEvent: false});
+      dedupControl.enable({emitEvent: false});
+      messageGroupIdControl.setValidators([Validators.required]);
+    } else {
+      messageGroupIdControl.disable({emitEvent: false});
+      dedupControl.disable({emitEvent: false});
+      messageGroupIdControl.clearValidators();
+    }
+    messageGroupIdControl.updateValueAndValidity({emitEvent: false});
   }
 
   private buildDeviceConnectivityInfoForm(): FormGroup {
@@ -97,12 +193,41 @@ export class GeneralSettingsComponent extends PageComponent implements HasConfir
   }
 
   saveDeviceConnectivitySettings(): void {
+    const formValue = this.deviceConnectivitySettingsForm.getRawValue();
+    const sqs = {...formValue.sqs};
+    // Do not resend an untouched secret: only send secretAccessKey when the admin explicitly changed it
+    // (or it was never previously saved).
+    if (sqs.showChangeSecret && !sqs.changeSecret) {
+      delete sqs.secretAccessKey;
+    }
+    delete sqs.showChangeSecret;
+    delete sqs.changeSecret;
+    formValue.sqs = sqs;
     this.deviceConnectivitySettings.jsonValue = {
       ...this.deviceConnectivitySettings.jsonValue,
-      ...this.deviceConnectivitySettingsForm.getRawValue()
+      ...formValue
     };
     this.adminService.saveAdminSettings<DeviceConnectivitySettings>(this.deviceConnectivitySettings)
       .subscribe(deviceConnectivitySettings => this.processDeviceConnectivitySettings(deviceConnectivitySettings));
+  }
+
+  testSqsConnection(): void {
+    this.testingSqsConnection = true;
+    this.sqsTestResult = null;
+    this.sqsTestErrorMessage = '';
+    const sqsValue: DeviceConnectivitySqsInfo = this.deviceConnectivitySettingsForm.get('sqs').getRawValue();
+    this.adminService.testSqsConnection(sqsValue, {ignoreErrors: true, ignoreLoading: true}).subscribe({
+      next: () => {
+        this.testingSqsConnection = false;
+        this.sqsTestResult = 'success';
+      },
+      error: error => {
+        this.testingSqsConnection = false;
+        this.sqsTestResult = 'failure';
+        this.sqsTestErrorMessage = error?.error?.message || this.translate.instant('admin.device-connectivity.sqs.test-connection-failed');
+        this.store.dispatch(new ActionNotificationShow({message: this.sqsTestErrorMessage, type: 'error'}));
+      }
+    });
   }
 
   discardGeneralSettings(): void {
@@ -110,7 +235,7 @@ export class GeneralSettingsComponent extends PageComponent implements HasConfir
   }
 
   discardDeviceConnectivitySettings(): void {
-    this.deviceConnectivitySettingsForm.reset(this.deviceConnectivitySettings.jsonValue);
+    this.processDeviceConnectivitySettings(this.deviceConnectivitySettings);
   }
 
   private processGeneralSettings(generalSettings: AdminSettings<GeneralSettings>): void {
@@ -120,7 +245,19 @@ export class GeneralSettingsComponent extends PageComponent implements HasConfir
 
   private processDeviceConnectivitySettings(deviceConnectivitySettings: AdminSettings<DeviceConnectivitySettings>): void {
     this.deviceConnectivitySettings = deviceConnectivitySettings;
-    this.deviceConnectivitySettingsForm.reset(this.deviceConnectivitySettings.jsonValue);
+    const jsonValue = this.deviceConnectivitySettings.jsonValue || {} as DeviceConnectivitySettings;
+    const sqs = jsonValue.sqs;
+    const hasSecret = !isUndefinedOrNull(sqs?.secretAccessKey) && sqs.secretAccessKey !== '';
+    const formValue = {
+      ...jsonValue,
+      sqs: {
+        ...sqs,
+        secretAccessKey: hasSecret ? '' : (sqs?.secretAccessKey || ''),
+        showChangeSecret: hasSecret,
+        changeSecret: false
+      }
+    };
+    this.deviceConnectivitySettingsForm.reset(formValue);
   }
 
   confirmForm(): FormGroup {
