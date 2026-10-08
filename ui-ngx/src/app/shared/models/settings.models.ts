@@ -75,7 +75,7 @@ export interface GeneralSettings {
   baseUrl: string;
 }
 
-export type DeviceConnectivityProtocol = 'http' | 'https' | 'mqtt' | 'mqtts' | 'coap' | 'coaps';
+export type DeviceConnectivityProtocol = 'http' | 'https' | 'mqtt' | 'mqtts' | 'coap' | 'coaps' | 'sqs';
 
 export interface DeviceConnectivityInfo {
   enabled: boolean;
@@ -83,7 +83,27 @@ export interface DeviceConnectivityInfo {
   port: number;
 }
 
-export type DeviceConnectivitySettings = Record<DeviceConnectivityProtocol, DeviceConnectivityInfo>;
+export interface SQSConnectivityInfo {
+  enabled: boolean;
+  awsRegion: string;
+  accessKeyId: string;
+  secretAccessKey: string;
+  queueName: string;
+  queueUrl?: string;
+  queueType: 'Standard' | 'FIFO';
+  messageGroupId?: string;
+  deduplicationId?: string;
+  endpointOverride?: string;
+  visibilityTimeout?: number;
+  pollingWaitTime?: number;
+  maxMessagesPerPoll?: number;
+  retryAttempts?: number;
+  retryDelayMs?: number;
+  sessionToken?: string;
+  messageRetentionSeconds?: number;
+}
+
+export type DeviceConnectivitySettings = Record<DeviceConnectivityProtocol, DeviceConnectivityInfo | SQSConnectivityInfo>;
 
 export enum MailTemplate {
   test = 'test',

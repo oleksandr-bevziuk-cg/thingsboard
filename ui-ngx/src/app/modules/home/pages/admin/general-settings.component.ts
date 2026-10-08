@@ -66,7 +66,8 @@ export class GeneralSettingsComponent extends PageComponent implements HasConfir
       mqtt: this.buildDeviceConnectivityInfoForm(),
       mqtts: this.buildDeviceConnectivityInfoForm(),
       coap: this.buildDeviceConnectivityInfoForm(),
-      coaps: this.buildDeviceConnectivityInfoForm()
+      coaps: this.buildDeviceConnectivityInfoForm(),
+      sqs: this.buildSQSConnectivityForm()
     });
   }
 
@@ -87,6 +88,61 @@ export class GeneralSettingsComponent extends PageComponent implements HasConfir
         formGroup.get('port').disable({emitEvent: false});
       }
     });
+    return formGroup;
+  }
+
+  private buildSQSConnectivityForm(): FormGroup {
+    const formGroup = this.fb.group({
+      enabled: [false, []],
+      awsRegion: [{value: 'us-east-1', disabled: true}, [Validators.required]],
+      accessKeyId: [{value: '', disabled: true}, [Validators.required]],
+      secretAccessKey: [{value: '', disabled: true}, [Validators.required]],
+      queueName: [{value: '', disabled: true}, [Validators.required]],
+      queueUrl: [{value: '', disabled: true}],
+      queueType: [{value: 'Standard', disabled: true}, [Validators.required]],
+      messageGroupId: [{value: '', disabled: true}],
+      deduplicationId: [{value: '', disabled: true}],
+      endpointOverride: [{value: '', disabled: true}],
+      visibilityTimeout: [{value: 30, disabled: true}, [Validators.min(0), Validators.max(43200)]],
+      pollingWaitTime: [{value: 20, disabled: true}, [Validators.min(0), Validators.max(20)]],
+      maxMessagesPerPoll: [{value: 10, disabled: true}, [Validators.min(1), Validators.max(10)]],
+      retryAttempts: [{value: 3, disabled: true}, [Validators.min(0), Validators.max(10)]],
+      retryDelayMs: [{value: 1000, disabled: true}, [Validators.min(0)]],
+      sessionToken: [{value: '', disabled: true}],
+      messageRetentionSeconds: [{value: '', disabled: true}, [Validators.min(60), Validators.max(1209600)]]
+    });
+
+    // Subscribe to enabled change to enable/disable nested fields
+    formGroup.get('enabled').valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(value => {
+      const controls = [
+        'awsRegion', 'accessKeyId', 'secretAccessKey', 'queueName', 'queueUrl',
+        'queueType', 'messageGroupId', 'deduplicationId', 'endpointOverride',
+        'visibilityTimeout', 'pollingWaitTime', 'maxMessagesPerPoll',
+        'retryAttempts', 'retryDelayMs', 'sessionToken', 'messageRetentionSeconds'
+      ];
+      controls.forEach(controlName => {
+        if (value) {
+          formGroup.get(controlName).enable({emitEvent: false});
+        } else {
+          formGroup.get(controlName).disable({emitEvent: false});
+        }
+      });
+    });
+
+    // Subscribe to queueType change to show/hide FIFO-specific fields
+    formGroup.get('queueType').valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(queueType => {
+      if (queueType === 'FIFO') {
+        formGroup.get('messageGroupId').setValidators([Validators.required]);
+      } else {
+        formGroup.get('messageGroupId').clearValidators();
+      }
+      formGroup.get('messageGroupId').updateValueAndValidity({emitEvent: false});
+    });
+
     return formGroup;
   }
 
