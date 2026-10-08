@@ -23,6 +23,7 @@ import { AttributeScope } from '@shared/models/telemetry/telemetry.models';
 import { EntityId } from '@shared/models/id/entity-id';
 import { CustomerId } from '@shared/models/id/customer-id';
 import { generateSecret } from '@core/utils';
+import { DeviceConnectivityInfo } from '@shared/models/settings.models';
 import { ConverterService } from '@core/http/converter.service';
 import { IntegrationService } from '@core/http/integration.service';
 import { Converter, ConverterType } from '@shared/models/converter.models';
@@ -175,9 +176,10 @@ export class TbDeviceInstallDialogComponent extends DialogComponent<TbDeviceInst
       const connectivity = await firstValueFrom(this.iotHubApiService.getConnectivitySettings({ ignoreErrors: true }));
       if (connectivity) {
         for (const [protocol, info] of Object.entries(connectivity)) {
-          if (info) {
-            this.transportVars[`${protocol}.host`] = info.host || '';
-            this.transportVars[`${protocol}.port`] = String(info.port || '');
+          if (info && protocol !== 'sqs') {
+            const transportInfo = info as DeviceConnectivityInfo;
+            this.transportVars[`${protocol}.host`] = transportInfo.host || '';
+            this.transportVars[`${protocol}.port`] = String(transportInfo.port || '');
           }
         }
       }
