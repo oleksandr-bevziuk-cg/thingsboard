@@ -9,7 +9,8 @@ import {
   AdminSettings,
   DeviceConnectivityProtocol,
   DeviceConnectivitySettings,
-  GeneralSettings
+  GeneralSettings,
+  SqsConnectivityConfig
 } from '@shared/models/settings.models';
 import { AdminService } from '@core/http/admin.service';
 import { HasConfirmForm } from '@core/guards/confirm-on-exit.guard';
@@ -66,7 +67,8 @@ export class GeneralSettingsComponent extends PageComponent implements HasConfir
       mqtt: this.buildDeviceConnectivityInfoForm(),
       mqtts: this.buildDeviceConnectivityInfoForm(),
       coap: this.buildDeviceConnectivityInfoForm(),
-      coaps: this.buildDeviceConnectivityInfoForm()
+      coaps: this.buildDeviceConnectivityInfoForm(),
+      sqs: this.buildSqsConnectivityForm()
     });
   }
 
@@ -88,6 +90,72 @@ export class GeneralSettingsComponent extends PageComponent implements HasConfir
       }
     });
     return formGroup;
+  }
+
+  private buildSqsConnectivityForm(): FormGroup {
+    const formGroup = this.fb.group({
+      enabled: [false, []],
+      awsRegion: [{value: 'us-east-1', disabled: true}, [Validators.required]],
+      accessKeyId: [{value: '', disabled: true}, [Validators.required]],
+      secretAccessKey: [{value: '', disabled: true}, [Validators.required]],
+      sessionToken: [{value: '', disabled: true}],
+      queueName: [{value: '', disabled: true}, [Validators.required]],
+      queueUrl: [{value: '', disabled: true}],
+      queueType: [{value: 'standard', disabled: true}, [Validators.required]],
+      messageGroupId: [{value: '', disabled: true}],
+      messageDeduplicationId: [{value: '', disabled: true}],
+      endpointOverride: [{value: '', disabled: true}],
+      visibilityTimeout: [{value: 30, disabled: true}, [Validators.min(0), Validators.max(43200)]],
+      pollingWaitTime: [{value: 20, disabled: true}, [Validators.min(0), Validators.max(20)]],
+      maxMessagesPerPoll: [{value: 10, disabled: true}, [Validators.min(1), Validators.max(10)]],
+      messageRetentionPeriod: [{value: 345600, disabled: true}, [Validators.min(60), Validators.max(1209600)]]
+    });
+
+    formGroup.get('enabled').valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(value => {
+      const fields = [
+        'awsRegion', 'accessKeyId', 'secretAccessKey', 'sessionToken',
+        'queueName', 'queueUrl', 'queueType', 'messageGroupId',
+        'messageDeduplicationId', 'endpointOverride', 'visibilityTimeout',
+        'pollingWaitTime', 'maxMessagesPerPoll', 'messageRetentionPeriod'
+      ];
+      fields.forEach(field => {
+        if (value) {
+          formGroup.get(field).enable({emitEvent: false});
+        } else {
+          formGroup.get(field).disable({emitEvent: false});
+        }
+      });
+    });
+
+    // Make messageGroupId required when queueType is FIFO
+    formGroup.get('queueType').valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(value => {
+      if (value === 'fifo') {
+        formGroup.get('messageGroupId').setValidators([Validators.required]);
+      } else {
+        formGroup.get('messageGroupId').setValidators([]);
+      }
+      formGroup.get('messageGroupId').updateValueAndValidity({emitEvent: false});
+    });
+
+    return formGroup;
+  }
+
+  testConnection(): void {
+    const sqsConfig = this.deviceConnectivitySettingsForm.get('sqs').getRawValue();
+    if (sqsConfig && sqsConfig.enabled) {
+      this.adminService.testConnectivity(sqsConfig).subscribe(
+        () => {
+          // Success handling can be added later
+        },
+        () => {
+          // Error handling can be added later
+        }
+      );
+    }
   }
 
   save(): void {
